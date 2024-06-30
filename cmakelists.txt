@@ -5,3 +5,5 @@ project(Wool)
 find_package(Threads REQUIRED)
 
 target_link_libraries(Wool uWS uv ssl crypto)
+
+add_executable(Wool Wool.cpp)
