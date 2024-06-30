@@ -1,9 +1,13 @@
 cmake_minimum_required (VERSION 3.6)
 project(Wool)
 
-#uWebSockets required
+# Find required packages
 find_package(Threads REQUIRED)
+# Add find_package or add_subdirectory for uWS, uv, ssl, and crypto as necessary
 
-target_link_libraries(Wool uWS uv ssl crypto)
+# Define the executable
+add_executable(WoolExecutable Wool.cpp) # Changed target name to WoolExecutable
 
-add_executable(Wool Wool.cpp)
+# Link libraries to the executable
+# Ensure that the libraries uWS, uv, ssl, and crypto are correctly found or added before this step
+target_link_libraries(WoolExecutable Threads::Threads uWS uv ssl crypto)
