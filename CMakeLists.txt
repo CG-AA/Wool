@@ -10,4 +10,4 @@ add_executable(WoolExecutable Wool.cpp) # Changed target name to WoolExecutable
 
 # Link libraries to the executable
 # Ensure that the libraries uWS, uv, ssl, and crypto are correctly found or added before this step
-target_link_libraries(WoolExecutable Threads::Threads uWS uv ssl crypto)
+target_link_libraries(WoolExecutable Threads::Threads uWS uv ssl crypto uSockets)
