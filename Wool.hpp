@@ -5,7 +5,11 @@
 
 class Wool {
 public:
-    Wool(const std::string token); // Constructor
+    std::string PUBKEY;
+    std::string token;
+    short port = 45900;
+
+    Wool(); // Constructor
     ~Wool(); // Destructor
 
     void run(); // Method to start the WebSocket server
