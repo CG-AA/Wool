@@ -14,6 +14,9 @@ add_library(Wool STATIC ${SOURCE_FILES})
 # Set the include directories for WoolLib
 target_include_directories(Wool PUBLIC ${USOCKETS_INCLUDE_DIR})
 
+# Link the Wool library with the required libraries
+target_link_libraries(Wool Threads::Threads sodium fmt uWebSockets uWebSockets ssl)
+
 # Use GNUInstallDirs for installation directories
 include(GNUInstallDirs)
 install(TARGETS Wool
