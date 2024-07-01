@@ -11,4 +11,4 @@ set_target_properties(Wool::Wool PROPERTIES
     IMPORTED_LOCATION "${CMAKE_INSTALL_PREFIX}/lib/libWool.a" # Adjust this path if necessary
 )
 
-set_property(TARGET Wool::Wool PROPERTY INTERFACE_LINK_LIBRARIES ${USOCKETS_LIBRARY} ZLIB::ZLIB fmt::fmt)
+set_property(TARGET Wool::Wool PROPERTY INTERFACE_LINK_LIBRARIES ${USOCKETS_LIBRARY} ZLIB::ZLIB fmt::fmt sodium)
