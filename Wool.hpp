@@ -7,12 +7,12 @@ class Wool {
 public:
     uWS::App app;
 
-    setPUBKEY(std::string pubkey)
-        this->PUBKEY = pubkey;
-    setToken(std::string token)
-        this->token = token;
-    setPort(short port)
-        this->port = port;
+    setPUBKEY(std::string pubkey){
+        this->PUBKEY = pubkey;}
+    setToken(std::string token){
+        this->token = token;}
+    setPort(short port){
+        this->port = port;}
 
     Wool(); // Constructor
 
