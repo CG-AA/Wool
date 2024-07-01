@@ -21,3 +21,5 @@ install(TARGETS ${PROJECT_NAME}
 install(DIRECTORY include/
         DESTINATION include/${PROJECT_NAME}
         FILES_MATCHING PATTERN "*.hpp")
+
+install(FILES WoolConfig.cmake DESTINATION lib/cmake/Wool)
