@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-find_library(USOCKETS_LIBRARY uSockets PATHS /usr/local/lib REQUIRED)
+find_library(USOCKETS_LIBRARY uSockets.a PATHS /usr/local/lib REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(fmt REQUIRED)
 
