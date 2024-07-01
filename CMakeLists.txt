@@ -20,7 +20,7 @@ add_library(Wool STATIC ${SOURCE_FILES})
 target_include_directories(Wool PUBLIC ${USOCKETS_INCLUDE_DIR})
 
 # Link the Wool library with the required libraries
-target_link_libraries(Wool Threads::Threads ${OPENSSL_LIBRARIES} fmt ${ZLIB_LIBRARIES} ${USOCKETS_LIBRARY} uWS)
+target_link_libraries(Wool PUbLIC Threads::Threads ${OPENSSL_LIBRARIES} fmt ${ZLIB_LIBRARIES} ${USOCKETS_LIBRARY} uWS)
 
 # Use GNUInstallDirs for installation directories
 include(GNUInstallDirs)
