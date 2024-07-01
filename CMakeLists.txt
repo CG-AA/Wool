@@ -7,11 +7,11 @@ file(GLOB_RECURSE PROJECT_SOURCES "src/*.cpp")
 
 find_library(USOCKETS_LIBRARY uSockets.a PATHS /usr/local/lib REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(fmt REQUIRED)
 
 add_library(${PROJECT_NAME} STATIC ${PROJECT_SOURCES})
 
-target_link_libraries(${PROJECT_NAME} ${USOCKETS_LIBRARY})
-target_link_libraries(${PROJECT_NAME} ZLIB::ZLIB)
+target_link_libraries(${PROJECT_NAME} ${USOCKETS_LIBRARY} ZLIB::ZLIB fmt::fmt)
 
 install(TARGETS ${PROJECT_NAME}
         ARCHIVE DESTINATION lib
