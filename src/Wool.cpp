@@ -1,4 +1,4 @@
-#include "Wool.hpp"
+#include "../include/Wool.hpp"
 #include <sodium.h>
 #include <spdlog/spdlog.h>
 
@@ -9,8 +9,8 @@ void Wool::setupRoutes() {
     }
     this->app.post("/DCendpoint", [this](auto* res, auto* req) {
         // Extract headers
-        std::string signature = req->getHeader("x-signature-ed25519").toString();
-        std::string timestamp = req->getHeader("x-signature-timestamp").toString();
+        std::string signature = std::string(req->getHeader("x-signature-ed25519"));
+        std::string timestamp = std::string(req->getHeader("x-signature-timestamp"));
         if (signature.empty() || timestamp.empty()) {
             spdlog::error("Missing required headers");
             res->writeStatus("400 Bad Request")->end();
@@ -19,7 +19,7 @@ void Wool::setupRoutes() {
 
         // Read the request body
         std::string body;
-        res->onData([&body, signature, timestamp, this](std::string_view data, bool last) {
+        res->onData([&body, &signature, &timestamp, res, this](std::string_view data, bool last) {
             body.append(data.data(), data.length());
             if (last) {
                 // Convert the hex string public key and signature to binary

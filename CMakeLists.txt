@@ -1,14 +1,23 @@
-cmake_minimum_required (VERSION 3.6)
+cmake_minimum_required(VERSION 3.6)
 project(Wool)
 
 # Find required packages
 find_package(Threads REQUIRED)
 
-# Define the executable
-add_executable(WoolExecutable Wool.cpp)
+set(SOURCE_FILES
+    src/Wool.cpp
+)
 
-# Include directories for uSockets
-include_directories(${USOCKETS_INCLUDE_DIR})
+# Create the Wool static library
+add_library(Wool STATIC ${SOURCE_FILES})
 
-# Link libraries to the executable
-target_link_libraries(WoolExecutable Threads::Threads uWS uv ssl crypto uSockets)
+# Set the include directories for WoolLib
+target_include_directories(Wool PUBLIC ${USOCKETS_INCLUDE_DIR})
+
+# Use GNUInstallDirs for installation directories
+include(GNUInstallDirs)
+install(TARGETS Wool
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+install(DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Wool)
