@@ -5,7 +5,7 @@ project(Wool)
 
 file(GLOB_RECURSE PROJECT_SOURCES "src/*.cpp")
 
-find_library(USOCKETS_LIBRARY uSockets.a PATHS /usr/lib REQUIRED)
+find_library(USOCKETS_LIBRARY uSockets.a PATHS /usr/local/lib REQUIRED)
 find_package(ZLIB REQUIRED)
 
 add_library(${PROJECT_NAME} STATIC ${PROJECT_SOURCES})
