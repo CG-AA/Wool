@@ -7,7 +7,7 @@ find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
 
 find_library(USOCKETS_LIBRARY NAMES uSockets PATHS /usr/lib NO_DEFAULT_PATH)
-find_path(USOCKETS_INCLUDE_DIR uSockets.h PATHS /usr/local/include/uSockets/ NO_DEFAULT_PATH)
+find_path(USOCKETS_INCLUDE_DIR libusockets.h PATHS /usr/local/include/uSockets/ NO_DEFAULT_PATH)
 
 set(SOURCE_FILES
     src/Wool.cpp
