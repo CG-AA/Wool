@@ -3,7 +3,8 @@ project(Wool)
 
 # Find required packages
 find_package(Threads REQUIRED)
-find_path(USOCKETS_INCLUDE_DIR NAMES libusockets.h)
+set(USOCKETS_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../uWebSockets/uSockets)
+set(USOCKETS_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/../uWebSockets/uSockets/uSockets.a)
 find_library(USOCKETS_LIBRARY NAMES uSockets)
 
 # Define the executable
