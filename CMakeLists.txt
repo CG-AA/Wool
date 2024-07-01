@@ -3,11 +3,14 @@ project(Wool)
 
 # Find required packages
 find_package(Threads REQUIRED)
-# Add find_package or add_subdirectory for uWS, uv, ssl, and crypto as necessary
+find_path(USOCKETS_INCLUDE_DIR NAMES libusockets.h)
+find_library(USOCKETS_LIBRARY NAMES uSockets)
 
 # Define the executable
-add_executable(WoolExecutable Wool.cpp) # Changed target name to WoolExecutable
+add_executable(WoolExecutable Wool.cpp)
+
+# Include directories for uSockets
+include_directories(${USOCKETS_INCLUDE_DIR})
 
 # Link libraries to the executable
-# Ensure that the libraries uWS, uv, ssl, and crypto are correctly found or added before this step
-target_link_libraries(WoolExecutable Threads::Threads uWS uv ssl crypto uSockets)
+target_link_libraries(WoolExecutable Threads::Threads uWS uv ssl crypto ${USOCKETS_LIBRARY})
