@@ -8,10 +8,11 @@ file(GLOB_RECURSE PROJECT_SOURCES "src/*.cpp")
 find_library(USOCKETS_LIBRARY uSockets.a PATHS /usr/local/lib REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(fmt REQUIRED)
+find_package(sodium REQUIRED)
 
 add_library(${PROJECT_NAME} STATIC ${PROJECT_SOURCES})
 
-target_link_libraries(${PROJECT_NAME} ${USOCKETS_LIBRARY} ZLIB::ZLIB fmt::fmt)
+target_link_libraries(${PROJECT_NAME} ${USOCKETS_LIBRARY} ZLIB::ZLIB fmt::fmt sodium::sodium)
 
 install(TARGETS ${PROJECT_NAME}
         ARCHIVE DESTINATION lib
