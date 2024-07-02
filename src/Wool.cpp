@@ -54,22 +54,8 @@ Wool::Wool() {
     }
 }
 
-void setupSecureConnection() {
-    try {
-        uWS::SocketContextOptions sslOptions = {
-            .key_file_name = "key.pem",
-            .cert_file_name = "cert.pem"
-        };
-    } catch (std::exception& e) {
-        spdlog::error("Failed to load SSL certificates: {}", e.what());
-        throw std::runtime_error("Failed to load SSL certificates");
-    }
-    try {
-        this->app = uWS::SSLApp(sslOptions);
-    } catch (std::exception& e) {
-        spdlog::error("Failed to create SSL app: {}", e.what());
-        throw std::runtime_error("Failed to create SSL app");
-    }
+void Wool::setupSecureConnection() {
+
 }
 
 void Wool::run() {
