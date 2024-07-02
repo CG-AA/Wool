@@ -16,6 +16,8 @@ public:
 
     Wool(); // Constructor
 
+    void setupSecureConnection();
+
     void run(); // Method to start the WebSocket server
 
 private:
