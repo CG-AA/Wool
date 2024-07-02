@@ -21,7 +21,7 @@ public:
 private:
     std::string PUBKEY;
     std::string token;
-    short port = 45900;
+    int port = 45900;
 
     void setupRoutes();
 };
