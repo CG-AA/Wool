@@ -19,7 +19,6 @@ Wool::~Wool() {
 
 Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
     curl_easy_reset(curl);
-    readBuffer.clear();
     std::string url = "https://discord.com/api/v10/channels/" + std::to_string(channelID) + "/messages";
     nlohmann::json data = {
         {"content", msg},
@@ -35,7 +34,6 @@ Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, dataStr.c_str());
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
-
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
@@ -48,6 +46,7 @@ Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
         // You can use the response_string for further processing
         std::cout << "Response from Discord: " << response_string << std::endl;
     }
-    curl_easy_cleanup(curl);
+    readBuffer.clear();
+    curl_slist_free_all(headers);
 }
     
