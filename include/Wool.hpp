@@ -24,9 +24,7 @@ public:
     Wool(); // Constructor
     ~Wool(); // Destructor
 
-    void setupSecureConnection();
-
-    void run(); // Method to start the WebSocket server
+    void connect(); // connect to discord api
 
 };
 
