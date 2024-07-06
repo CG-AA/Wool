@@ -2,7 +2,6 @@
 #define WOOL_HPP
 
 #include <curl/curl.h>
-#include <uWebSockets/App.h>
 
 class Wool {
 public:
