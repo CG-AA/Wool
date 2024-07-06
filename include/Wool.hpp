@@ -11,8 +11,6 @@ public:
         this->PUBKEY = pubkey;}
     void setToken(std::string token){
         this->token = token;}
-    void setPort(short port){
-        this->port = port;}
 
     Wool(); // Constructor
 
@@ -23,7 +21,6 @@ public:
 private:
     std::string PUBKEY;
     std::string token;
-    int port = 45900;
 
     void setupRoutes();
 };
