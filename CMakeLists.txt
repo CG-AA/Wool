@@ -1,24 +1,32 @@
+option(B_EX "Build the example executable" OFF)
+option(B_LIB "Build the library" ON)
+
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_CXX_STANDARD 20)
 
 project(Wool)
 
-file(GLOB_RECURSE PROJECT_SOURCES "src/*.cpp")
+if(B_LIB)
 
-add_library(${PROJECT_NAME} STATIC ${PROJECT_SOURCES})
+	file(GLOB_RECURSE PROJECT_SOURCES "src/*.cpp")
 
-target_link_libraries(${PROJECT_NAME} ${USOCKETS_LIBRARY} curl spdlog)
+	add_library(${PROJECT_NAME} STATIC ${PROJECT_SOURCES})
 
-install(TARGETS ${PROJECT_NAME}
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib
-        RUNTIME DESTINATION bin)
+	target_link_libraries(${PROJECT_NAME} curl spdlog fmt)
 
-install(DIRECTORY include/
-        DESTINATION include/${PROJECT_NAME}
-        FILES_MATCHING PATTERN "*.hpp")
+	install(TARGETS ${PROJECT_NAME}
+			ARCHIVE DESTINATION lib
+			LIBRARY DESTINATION lib
+			RUNTIME DESTINATION bin)
 
-install(FILES WoolConfig.cmake DESTINATION lib/cmake/Wool)
+	install(DIRECTORY include/
+			DESTINATION include/${PROJECT_NAME}
+			FILES_MATCHING PATTERN "*.hpp")
 
-add_executable(example examples/basic.cpp)
-target_link_libraries(example ${PROJECT_NAME})
+	install(FILES WoolConfig.cmake DESTINATION lib/cmake/Wool)
+endif()
+
+if(B_EX)
+    add_executable(example examples/basic.cpp)
+    target_link_libraries(example ${PROJECT_NAME})
+endif()
