@@ -2,10 +2,19 @@
 #define WOOL_HPP
 
 #include <curl/curl.h>
+#include <nlohmann/json.hpp>
 
 class Wool {
+private:
+    std::string PUBKEY;
+    std::string token;
+
+    CURL *curl;
+    CURLcode res;
+    std::string readBuffer;
+
+    static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 public:
-    uWS::App app;
 
     void setPUBKEY(std::string pubkey){
         this->PUBKEY = pubkey;}
@@ -13,16 +22,12 @@ public:
         this->token = token;}
 
     Wool(); // Constructor
+    ~Wool(); // Destructor
 
     void setupSecureConnection();
 
     void run(); // Method to start the WebSocket server
 
-private:
-    std::string PUBKEY;
-    std::string token;
-
-    void setupRoutes();
 };
 
 #endif // WOOL_HPP
