@@ -24,8 +24,7 @@ public:
     Wool(); // Constructor
     ~Wool(); // Destructor
 
-    void connect(); // connect to discord api
-
+    sendMsg(std::string msg, int64_t channelID, bool allowMention = true);
 };
 
 #endif // WOOL_HPP

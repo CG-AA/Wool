@@ -10,12 +10,6 @@ static size_t Wool::WriteCallback(void *contents, size_t size, size_t nmemb, voi
 Wool::Wool() {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     curl = curl_easy_init();
-    if(curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, "https://discord.com/api/v10/users/@me");
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-        curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
-    }
 }
 
 Wool::~Wool() {
@@ -23,3 +17,37 @@ Wool::~Wool() {
     curl_global_cleanup();
 }
 
+Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
+    curl_easy_reset(curl);
+    readBuffer.clear();
+    std::string url = "https://discord.com/api/v10/channels/" + std::to_string(channelID) + "/messages";
+    nlohmann::json data = {
+        {"content", msg},
+        {"allowed_mentions", {
+            {"parse", allowMention ? {"users", "roles", "everyone"} : {}}
+        }}
+    };
+    std::string dataStr = data.dump();
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, ("Authorization: Bot " + token).c_str());
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, dataStr.c_str());
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+    // Perform the request, res will get the return code
+    res = curl_easy_perform(curl);
+    // Check for errors
+    if(res != CURLE_OK) {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    } else {
+        // You can use the response_string for further processing
+        std::cout << "Response from Discord: " << response_string << std::endl;
+    }
+    curl_easy_cleanup(curl);
+}
+    
