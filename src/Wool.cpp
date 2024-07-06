@@ -1,10 +1,14 @@
 #include "../include/Wool.hpp"
+#include <spdlog/spdlog.h>
 
 // data received(void *contents) to string(std::string *userp)
 //used by curl
-static size_t Wool::WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
-    userp->append((char*)contents, size * nmemb);
-    return size * nmemb;
+size_t Wool::WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
+    // Cast userp back to Wool* to access instance data
+    Wool* instance = static_cast<Wool*>(userp);
+    size_t realSize = size * nmemb;
+    instance->readBuffer.append((char*)contents, realSize);
+    return realSize;
 }
 
 Wool::Wool() {
@@ -17,14 +21,19 @@ Wool::~Wool() {
     curl_global_cleanup();
 }
 
-Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
+void Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
     curl_easy_reset(curl);
     std::string url = "https://discord.com/api/v10/channels/" + std::to_string(channelID) + "/messages";
+    nlohmann::json allowed_mentions;
+    if (allowMention) {
+        allowed_mentions = {{"parse", {"users", "roles", "everyone"}}};
+    } else {
+        allowed_mentions = {{"parse", {}}};
+    }
+
     nlohmann::json data = {
         {"content", msg},
-        {"allowed_mentions", {
-            {"parse", allowMention ? {"users", "roles", "everyone"} : {}}
-        }}
+        {"allowed_mentions", allowed_mentions}
     };
     std::string dataStr = data.dump();
     struct curl_slist *headers = NULL;
@@ -35,16 +44,16 @@ Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, dataStr.c_str());
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
 
     // Perform the request, res will get the return code
     res = curl_easy_perform(curl);
     // Check for errors
     if(res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        SPDLOG_ERROR("curl_easy_perform() failed: {}", curl_easy_strerror(res));
     } else {
         // You can use the response_string for further processing
-        std::cout << "Response from Discord: " << response_string << std::endl;
+        SPDLOG_INFO("Response: {}", readBuffer);
     }
     readBuffer.clear();
     curl_slist_free_all(headers);

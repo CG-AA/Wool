@@ -24,7 +24,7 @@ public:
     Wool(); // Constructor
     ~Wool(); // Destructor
 
-    sendMsg(std::string msg, int64_t channelID, bool allowMention = true);
+    void sendMsg(std::string msg, int64_t channelID, bool allowMention = true);
 };
 
 #endif // WOOL_HPP

@@ -5,11 +5,9 @@ project(Wool)
 
 file(GLOB_RECURSE PROJECT_SOURCES "src/*.cpp")
 
-find_package(curl REQUIRED)
-
 add_library(${PROJECT_NAME} STATIC ${PROJECT_SOURCES})
 
-target_link_libraries(${PROJECT_NAME} ${USOCKETS_LIBRARY} curl)
+target_link_libraries(${PROJECT_NAME} ${USOCKETS_LIBRARY} curl spdlog)
 
 install(TARGETS ${PROJECT_NAME}
         ARCHIVE DESTINATION lib
@@ -21,3 +19,6 @@ install(DIRECTORY include/
         FILES_MATCHING PATTERN "*.hpp")
 
 install(FILES WoolConfig.cmake DESTINATION lib/cmake/Wool)
+
+add_executable(example examples/basic.cpp)
+target_link_libraries(example ${PROJECT_NAME})
