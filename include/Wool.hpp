@@ -3,6 +3,10 @@
 
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
+#include <websocketpp/client.hpp>
+#include <websocketpp/config/asio_client.hpp>
+
+typedef websocketpp::client<websocketpp::config::asio_tls_client> ws_client;
 
 class Wool {
 private:

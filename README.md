@@ -14,6 +14,9 @@ Wool is a modern C++ library designed to make Discord bot development easier and
 
 - CMake 3.15 or higher
 - A C++ compiler that supports at least C++20
+- curl
+- nlohmann/json
+- websocketpp
 
 ### Building from Source using CMake
 
