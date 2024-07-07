@@ -28,7 +28,21 @@ void Wool::connect_ws(){
     std::string url = "https://discord.com/api/v10/gateway/bot";
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, ("Authorization: Bot " + token).c_str());
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
 
+    res = curl_easy_perform(curl);
+    if(res != CURLE_OK) {
+        SPDLOG_ERROR("curl_easy_perform() failed: {}", curl_easy_strerror(res));
+    } else {
+        nlohmann::json response = nlohmann::json::parse(readBuffer);
+        WSS_URL = response["url"];
+        SPDLOG_INFO("gateway URL received: {}", WSS_URL);
+    }
 }
 
 void Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
@@ -62,8 +76,7 @@ void Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
     if(res != CURLE_OK) {
         SPDLOG_ERROR("curl_easy_perform() failed: {}", curl_easy_strerror(res));
     } else {
-        // You can use the response_string for further processing
-        SPDLOG_INFO("Response: {}", readBuffer);
+        SPDLOG_INFO("message sent: {}", readBuffer);
     }
     readBuffer.clear();
     curl_slist_free_all(headers);

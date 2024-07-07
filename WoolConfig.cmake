@@ -7,4 +7,10 @@ set_target_properties(Wool::Wool PROPERTIES
     IMPORTED_LOCATION "${CMAKE_INSTALL_PREFIX}/lib/libWool.a"
 )
 
-set_property(TARGET Wool::Wool PROPERTY INTERFACE_LINK_LIBRARIES curl spdlog fmt)
+set_property(TARGET Wool::Wool PROPERTY INTERFACE_LINK_LIBRARIES 
+    CURL::libcurl 
+    spdlog::spdlog 
+    fmt::fmt 
+    OpenSSL::SSL 
+    Boost::system
+)
