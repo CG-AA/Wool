@@ -12,6 +12,7 @@ class Wool {
 private:
     std::string PUBKEY;
     std::string token;
+    std::string WSS_URL;
 
     CURL *curl;
     CURLcode res;
@@ -27,6 +28,8 @@ public:
 
     Wool(); // Constructor
     ~Wool(); // Destructor
+
+    void connect_ws();
 
     void sendMsg(std::string msg, int64_t channelID, bool allowMention = true);
 };

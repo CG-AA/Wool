@@ -21,6 +21,16 @@ Wool::~Wool() {
     curl_global_cleanup();
 }
 
+void Wool::connect_ws(){
+    SPDLOG_INFO("Connecting to websocket...");
+    SPDLOG_INFO("getting gateway URL...");
+    curl_easy_reset(curl);
+    std::string url = "https://discord.com/api/v10/gateway/bot";
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, ("Authorization: Bot " + token).c_str());
+
+}
+
 void Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
     curl_easy_reset(curl);
     std::string url = "https://discord.com/api/v10/channels/" + std::to_string(channelID) + "/messages";
