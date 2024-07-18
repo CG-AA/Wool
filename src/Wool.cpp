@@ -39,10 +39,15 @@ void Wool::connect_ws(){
     if(res != CURLE_OK) {
         SPDLOG_ERROR("curl_easy_perform() failed: {}", curl_easy_strerror(res));
     } else {
-        nlohmann::json response = nlohmann::json::parse(readBuffer);
-        WSS_URL = response["url"];
-        SPDLOG_INFO("gateway URL received: {}", WSS_URL);
+        try {
+            nlohmann::json response = nlohmann::json::parse(readBuffer);
+            WSS_URL = response["url"];
+            SPDLOG_INFO("gateway URL received: {}", WSS_URL);
+        } catch (nlohmann::json::parse_error& e) {
+            SPDLOG_ERROR("JSON parsing failed: {}", e.what());
+        }
     }
+    curl_slist_free_all(headers); // Free the header list
 }
 
 void Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
