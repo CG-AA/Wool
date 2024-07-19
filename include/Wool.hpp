@@ -9,7 +9,9 @@
 typedef websocketpp::client<websocketpp::config::asio_tls_client> ws_client;
 
 class Wool {
+friend class WoolHelper;
 private:
+
     std::string PUBKEY;
     std::string token;
     std::string WSS_URL;
@@ -35,6 +37,13 @@ public:
     void connect_ws();
 
     void sendMsg(std::string msg, int64_t channelID, bool allowMention = true);
-};
+};// class Wool
+
+class WoolHelper {
+    public:
+        static void setHeartbeatInterval(Wool& wool, int interval) {
+            wool.heartbeat_interval = interval;
+        }
+};// class WoolHelper
 
 #endif // WOOL_HPP

@@ -25,7 +25,8 @@ namespace {
 auto initialOnMessage = [this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
     std::string msgStr(message, length);
     auto jsonMsg = nlohmann::json::parse(msgStr);
-     jsonMsg["d"]["heartbeat_interval"];
+    WoolHelper::setHeartbeatInterval(jsonMsg["d"]["heartbeat_interval"]);
+    h.onMessage(generalOnMessage);
 };
 
 // General onMessage callback that doesn't check for the "Hello" event
