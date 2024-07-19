@@ -24,6 +24,8 @@ private:
     ws_client uWS;
 
     static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
+
+    void startHeartbeat();
 public:
 
     void setPUBKEY(std::string pubkey){

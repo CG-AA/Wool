@@ -50,7 +50,7 @@ void Wool::connect_ws(){
     auto initialOnMessage = [this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
         std::string msgStr(message, length);
         auto jsonMsg = nlohmann::json::parse(msgStr);
-        WoolHelper::setHeartbeatInterval(jsonMsg["d"]["heartbeat_interval"]);
+        WoolHelper::setHeartbeatInterval(jsonMsg["d"]["heartbeat_interval"] * 0.9);
         h.onMessage(generalOnMessage);
     };
 
