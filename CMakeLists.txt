@@ -10,6 +10,9 @@ find_package(CURL REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(fmt REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
+set(uWS_INCLUDE_DIR "/path/to/uWS/include")
+set(uWS_LIBRARY "/path/to/uWS/libuWS.a")
+set(USOCKETS_LIBRARY "/path/to/uSockets/libuSockets.a")
 
 find_library(USOCKETS_LIBRARY uSockets.a PATHS /usr/local/lib REQUIRED)
 
@@ -21,12 +24,15 @@ if(B_LIB)
 
 	target_link_libraries(${PROJECT_NAME} 
 		${USOCKETS_LIBRARY}
+		${uWS_LIBRARY}
 		CURL::libcurl 
 		spdlog::spdlog 
 		fmt::fmt 
 		OpenSSL::SSL 
 		Boost::system
 	)
+
+	target_include_directories(${PROJECT_NAME} PRIVATE ${uWS_INCLUDE_DIR})
 
 	include(GNUInstallDirs)
 
