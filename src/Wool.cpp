@@ -20,24 +20,6 @@ Wool::~Wool() {
     curl_global_cleanup();
 }
 
-// call back function for websocket
-namespace {
-auto initialOnMessage = [this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
-    std::string msgStr(message, length);
-    auto jsonMsg = nlohmann::json::parse(msgStr);
-    WoolHelper::setHeartbeatInterval(jsonMsg["d"]["heartbeat_interval"]);
-    h.onMessage(generalOnMessage);
-};
-
-// General onMessage callback that doesn't check for the "Hello" event
-auto generalOnMessage = [this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
-    std::string msgStr(message, length);
-    auto jsonMsg = nlohmann::json::parse(msgStr);
-    // Handle all messages without checking for "Hello"
-    std::cout << "Message received: " << jsonMsg.dump() << std::endl;
-};
-} // namespace
-
 void Wool::connect_ws(){
     SPDLOG_INFO("Connecting to websocket...");
     SPDLOG_INFO("getting gateway URL...");
@@ -64,6 +46,23 @@ void Wool::connect_ws(){
             SPDLOG_ERROR("JSON parsing failed: {}", e.what());
         }
     }
+    {//message callbacks
+    auto initialOnMessage = [this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
+        std::string msgStr(message, length);
+        auto jsonMsg = nlohmann::json::parse(msgStr);
+        WoolHelper::setHeartbeatInterval(jsonMsg["d"]["heartbeat_interval"]);
+        h.onMessage(generalOnMessage);
+    };
+
+    // General onMessage callback that doesn't check for the "Hello" event
+    auto generalOnMessage = [this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
+        std::string msgStr(message, length);
+        auto jsonMsg = nlohmann::json::parse(msgStr);
+        // Handle all messages without checking for "Hello"
+        std::cout << "Message received: " << jsonMsg.dump() << std::endl;
+    };
+    }//message callbacks
+
     uWS::Hub h;
 
     h.onConnection([this](uWS::WebSocket<uWS::CLIENT> *ws, uWS::HttpRequest req) {
