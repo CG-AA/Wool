@@ -46,6 +46,28 @@ void Wool::connect_ws(){
             SPDLOG_ERROR("JSON parsing failed: {}", e.what());
         }
     }
+    uWS::Hub h;
+
+    h.onConnection([this](uWS::WebSocket<uWS::CLIENT> *ws, uWS::HttpRequest req) {
+        std::cout << "Connected to Discord WebSocket Gateway!" << std::endl;
+    });
+
+    h.onMessage([this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
+        std::string msgStr(message, length);
+        auto jsonMsg = nlohmann::json::parse(msgStr);
+        // Handle the message based on its content
+        std::cout << "Message received: " << jsonMsg.dump() << std::endl;
+    });
+
+    h.onDisconnection([this](uWS::WebSocket<uWS::CLIENT> *ws, int code, char *message, size_t length) {
+        std::cout << "Disconnected: " << std::string(message, length) << std::endl;
+    });
+
+    if (!h.connect(WSS_URL, nullptr)) {
+        std::cerr << "Connection to Discord WebSocket Gateway failed!" << std::endl;
+    } else {
+        h.run();
+    }
     curl_slist_free_all(headers); // Free the header list
 }
 
