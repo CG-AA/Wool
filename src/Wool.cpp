@@ -46,42 +46,10 @@ void Wool::connect_ws(){
             SPDLOG_ERROR("JSON parsing failed: {}", e.what());
         }
     }
-    {//message callbacks
-    auto initialOnMessage = [this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
-        std::string msgStr(message, length);
-        auto jsonMsg = nlohmann::json::parse(msgStr);
-        WoolHelper::setHeartbeatInterval(jsonMsg["d"]["heartbeat_interval"] * 0.9);
-        h.onMessage(generalOnMessage);
-    };
-
-    // General onMessage callback that doesn't check for the "Hello" event
-    auto generalOnMessage = [this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
-        std::string msgStr(message, length);
-        auto jsonMsg = nlohmann::json::parse(msgStr);
-        // Handle all messages without checking for "Hello"
-        std::cout << "Message received: " << jsonMsg.dump() << std::endl;
-    };
-    }//message callbacks
-
-    uWS::Hub h;
-
-    h.onConnection([this](uWS::WebSocket<uWS::CLIENT> *ws, uWS::HttpRequest req) {
-        std::cout << "Connected to Discord WebSocket Gateway!" << std::endl;
-    });
-
-    h.onMessage(initialOnMessage);
-
-    h.onDisconnection([this](uWS::WebSocket<uWS::CLIENT> *ws, int code, char *message, size_t length) {
-        std::cout << "Disconnected: " << std::string(message, length) << std::endl;
-    });
-
-    if (!h.connect(WSS_URL, nullptr)) {
-        std::cerr << "Connection to Discord WebSocket Gateway failed!" << std::endl;
-    } else {
-        h.run();
-    }
     curl_slist_free_all(headers); // Free the header list
 }
+
+void Wool::startHeartbeat(
 
 void Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
     curl_easy_reset(curl);

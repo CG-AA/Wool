@@ -21,7 +21,7 @@ private:
     CURLcode res;
     std::string readBuffer;
 
-    ws_client uWS;
+    ws_client WSpp;
 
     static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
