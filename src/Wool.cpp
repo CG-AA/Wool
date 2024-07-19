@@ -17,7 +17,6 @@ Wool::Wool() {
 }
 
 Wool::~Wool() {
-    curl_easy_cleanup(curl);
     curl_global_cleanup();
 }
 

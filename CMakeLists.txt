@@ -2,13 +2,16 @@ option(B_EX "Build the example executable" OFF)
 option(B_LIB "Build the library" ON)
 
 cmake_minimum_required(VERSION 3.15)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 
 project(Wool)
 
 find_package(CURL REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(fmt REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system)
+
+find_library(USOCKETS_LIBRARY uSockets.a PATHS /usr/local/lib REQUIRED)
 
 if(B_LIB)
 
@@ -17,6 +20,7 @@ if(B_LIB)
 	add_library(${PROJECT_NAME} STATIC ${PROJECT_SOURCES})
 
 	target_link_libraries(${PROJECT_NAME} 
+		${USOCKETS_LIBRARY}
 		CURL::libcurl 
 		spdlog::spdlog 
 		fmt::fmt 
