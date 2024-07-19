@@ -20,6 +20,20 @@ Wool::~Wool() {
     curl_global_cleanup();
 }
 
+// call back function for websocket
+auto initialOnMessage = [this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
+    std::string msgStr(message, length);
+    auto jsonMsg = nlohmann::json::parse(msgStr);
+};
+
+// General onMessage callback that doesn't check for the "Hello" event
+auto generalOnMessage = [this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
+    std::string msgStr(message, length);
+    auto jsonMsg = nlohmann::json::parse(msgStr);
+    // Handle all messages without checking for "Hello"
+    std::cout << "Message received: " << jsonMsg.dump() << std::endl;
+};
+
 void Wool::connect_ws(){
     SPDLOG_INFO("Connecting to websocket...");
     SPDLOG_INFO("getting gateway URL...");
@@ -52,12 +66,7 @@ void Wool::connect_ws(){
         std::cout << "Connected to Discord WebSocket Gateway!" << std::endl;
     });
 
-    h.onMessage([this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
-        std::string msgStr(message, length);
-        auto jsonMsg = nlohmann::json::parse(msgStr);
-        // Handle the message based on its content
-        std::cout << "Message received: " << jsonMsg.dump() << std::endl;
-    });
+    h.onMessage(initialOnMessage);
 
     h.onDisconnection([this](uWS::WebSocket<uWS::CLIENT> *ws, int code, char *message, size_t length) {
         std::cout << "Disconnected: " << std::string(message, length) << std::endl;
