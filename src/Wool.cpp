@@ -67,10 +67,13 @@ void Wool::connect_ws(){
         }
         WSC.connect(conn);
         WSC.run();
+    } catch (websocketpp::exception const & e) {
+        SPDLOG_ERROR("Websocketpp exception: {}", e.what());
+    } catch (std::exception const & e) {
+        SPDLOG_ERROR("std::exception: {}", e.what());
+    }
     curl_slist_free_all(headers); // Free the header list
 }
-
-void Wool::startHeartbeat(
 
 void Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
     curl_easy_reset(curl);
