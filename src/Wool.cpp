@@ -21,9 +21,11 @@ Wool::~Wool() {
 }
 
 // call back function for websocket
+namespace {
 auto initialOnMessage = [this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, size_t length, uWS::OpCode opCode) {
     std::string msgStr(message, length);
     auto jsonMsg = nlohmann::json::parse(msgStr);
+     jsonMsg["d"]["heartbeat_interval"];
 };
 
 // General onMessage callback that doesn't check for the "Hello" event
@@ -33,6 +35,7 @@ auto generalOnMessage = [this](uWS::WebSocket<uWS::CLIENT> *ws, char *message, s
     // Handle all messages without checking for "Hello"
     std::cout << "Message received: " << jsonMsg.dump() << std::endl;
 };
+} // namespace
 
 void Wool::connect_ws(){
     SPDLOG_INFO("Connecting to websocket...");

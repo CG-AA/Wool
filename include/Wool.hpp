@@ -13,6 +13,7 @@ private:
     std::string PUBKEY;
     std::string token;
     std::string WSS_URL;
+    int heartbeat_interval;
 
     CURL *curl;
     CURLcode res;
