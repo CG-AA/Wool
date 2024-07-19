@@ -46,6 +46,27 @@ void Wool::connect_ws(){
             SPDLOG_ERROR("JSON parsing failed: {}", e.what());
         }
     }
+    try {
+        ws_client WSC;
+        WSC.init_asio();
+        //tlsv12 init
+        WSC.set_tls_init_handler([](websocketpp::connection_hdl) {
+            return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
+        });
+        WSC.set_message_handler([&WSC](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+            SPDLOG_INFO("Message from WS: {}", msg->get_payload());
+        });
+        WSC.set_open_handler([&WSC](websocketpp::connection_hdl hdl) {
+            SPDLOG_INFO("Connected to Discord websocket :D");
+        });
+        websocketpp::lib::error_code ec;    // check ec to see if there were errors
+        auto conn = WSC.get_connection(WSS_URL, ec);
+        if (ec) {
+            SPDLOG_ERROR("Could not create connection because: {}", ec.message());
+            return;
+        }
+        WSC.connect(conn);
+        WSC.run();
     curl_slist_free_all(headers); // Free the header list
 }
 
