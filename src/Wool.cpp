@@ -41,25 +41,8 @@ if (hdl.expired()) {
     SPDLOG_ERROR("Connection expired");
     return;
 }
-SPDLOG_INFO("exploded after this line(0)");
-// Attempt to lock the weak pointer to get a shared pointer
-auto lockedHdl = hdl.lock();
-try {
-    // Upgrade the weak pointer to a shared_ptr to the connection object
-    websocketpp::connection_hdl con = websocketpp::endpoint::get_con_from_hdl<
-    
-    // Now you can interact with the connection object, for example:
-    // Print the remote endpoint address
-    SPDLOG_INFO("Connection address: {}", con->get_remote_endpoint());
-} catch (const websocketpp::exception& e) {
-    // Handle the case where the handle could not be upgraded
-    SPDLOG_ERROR("Failed to upgrade connection handle: {}", e.what());
-}
-SPDLOG_INFO("exploded after this line(1)");
             this->WSpp.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
-SPDLOG_INFO("exploded after this line(2)");
             this->ACK = false;
-SPDLOG_INFO("exploded after this line(3)");
             std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
         }
 SPDLOG_INFO("Program exploded after this line(4)");
@@ -70,9 +53,9 @@ SPDLOG_INFO("Program exploded after this line(4)");
     heartbeatThread.detach();
     SPDLOG_INFO("Heartbeat thread started");
     SPDLOG_INFO("Switching to general message handler");
-    WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-        this->generalMessageHandler(hdl, msg);
-    });
+    // WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+    //     this->generalMessageHandler(hdl, msg);
+    // });
     SPDLOG_INFO("Received message: {}", msg->get_payload());
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("JSON parsing failed: {}", e.what());
@@ -133,7 +116,43 @@ void Wool::connect_ws(){
             return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
         });
         WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-            this->initMessageHandler(hdl, msg);
+    try{
+    nlohmann::json message = nlohmann::json::parse(msg->get_payload());
+    WoolHelper::setHeartbeatInterval(*this, int(message["d"]["heartbeat_interval"]) * 0.9);
+    SPDLOG_INFO("Heartbeat interval: {}", heartbeat_interval);
+    this->ACK = true;
+    std::thread heartbeatThread([this, &hdl](){
+        std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval) * (std::rand()%100) / 100);
+        while (this->ACK) {
+            nlohmann::json heartbeat = {
+                {"op", 1},
+                {"d", int(this->LS)}
+            };
+if (hdl.expired()) {
+    SPDLOG_ERROR("Connection expired");
+    return;
+}
+            this->WSpp.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
+            this->ACK = false;
+            std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
+        }
+SPDLOG_INFO("Program exploded after this line(4)");
+        this->WSpp.close(hdl, websocketpp::close::status::protocol_error, "Heartbeat ACK not received");
+        SPDLOG_WARN("Didn't receive heartbeat ACK, attempting to reconnect...");
+        this->connect_ws();
+    });
+    heartbeatThread.detach();
+    SPDLOG_INFO("Heartbeat thread started");
+    SPDLOG_INFO("Switching to general message handler");
+    // WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+    //     this->generalMessageHandler(hdl, msg);
+    // });
+    SPDLOG_INFO("Received message: {}", msg->get_payload());
+    } catch (nlohmann::json::parse_error& e) {
+        SPDLOG_ERROR("JSON parsing failed: {}", e.what());
+    } catch (std::exception& e) {
+        SPDLOG_ERROR("std::exception: {}", e.what());
+    }
         });
         WSpp.set_open_handler([](websocketpp::connection_hdl hdl) {
             SPDLOG_INFO("Connected to Discord websocket :D");
