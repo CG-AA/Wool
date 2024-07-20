@@ -21,22 +21,33 @@ Wool::Wool() {
 Wool::~Wool() {
     curl_global_cleanup();
 }
-
+/**
+ * @brief This function is called when the websocket connection is opened
+ * 
+ * create heartbeat thread
+ */
 void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
     nlohmann::json message = nlohmann::json::parse(msg->get_payload());
     WoolHelper::setHeartbeatInterval(*this, message["d"]["heartbeat_interval"] * 0.9);
     SPDLOG_INFO("Heartbeat interval: {}", heartbeat_interval);
+    this->ACK = true;
     std::thread heartbeatThread([this](){
-        std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval) * std::rand()%100 / 100);
-        while (true) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval) * (std::rand()%100) / 100);
+        while (this->ACK) {
             nlohmann::json heartbeat = {
                 {"op", 1},
-                {"d", 251}
+                {"d", this->LS}
             };
             WSpp.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
+            this->ACK = false;
             std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
         }
+        this->WSpp.close(hdl, websocketpp::close::status::protocol_error, "Heartbeat ACK not received");
+        SPDLOG_WARN("Didn't receive heartbeat ACK, attempting to reconnect...");
+        this->connect_ws();
     });
+    heartbeatThread.detach();
+    SPDLOG_INFO("Heartbeat thread started");
 }
 
 
@@ -73,9 +84,7 @@ void Wool::connect_ws(){
         WSC.set_tls_init_handler([](websocketpp::connection_hdl) {
             return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
         });
-        WSC.set_message_handler([&WSC](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-            SPDLOG_INFO("Message from WS: {}", msg->get_payload());
-        });
+        WSC.set_message_handler(this->initMessageHandler);
         WSC.set_open_handler([&WSC](websocketpp::connection_hdl hdl) {
             SPDLOG_INFO("Connected to Discord websocket :D");
         });
@@ -93,7 +102,7 @@ void Wool::connect_ws(){
         SPDLOG_ERROR("std::exception: {}", e.what());
     }
     curl_slist_free_all(headers); // Free the header list
-}
+}//connect_ws
 
 void Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
     curl_easy_reset(curl);
