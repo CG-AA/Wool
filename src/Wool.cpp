@@ -27,6 +27,7 @@ Wool::~Wool() {
  * create heartbeat thread
  */
 void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+    try{
     nlohmann::json message = nlohmann::json::parse(msg->get_payload());
     WoolHelper::setHeartbeatInterval(*this, int(message["d"]["heartbeat_interval"]) * 0.9);
     SPDLOG_INFO("Heartbeat interval: {}", heartbeat_interval);
@@ -52,9 +53,15 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
     WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
         this->generalMessageHandler(hdl, msg);
     });
+    } catch (nlohmann::json::parse_error& e) {
+        SPDLOG_ERROR("JSON parsing failed: {}", e.what());
+    } catch (std::exception& e) {
+        SPDLOG_ERROR("std::exception: {}", e.what());
+    }
 }
 
 void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+    try{
     nlohmann::json message = nlohmann::json::parse(msg->get_payload());
     this->LS = message["s"];
     if (message["op"] == 11) {
@@ -63,6 +70,11 @@ void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::mes
         return;
     }
     SPDLOG_INFO("Received message: {}", message.dump());
+    } catch (nlohmann::json::parse_error& e) {
+        SPDLOG_ERROR("JSON parsing failed: {}", e.what());
+    } catch (std::exception& e) {
+        SPDLOG_ERROR("std::exception: {}", e.what());
+    }
 }
 
 

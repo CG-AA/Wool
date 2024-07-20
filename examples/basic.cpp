@@ -14,12 +14,17 @@ nlohmann::json getConfig(){
     return config;
 }
 
+
 int main() {
-    Wool wool;
-    nlohmann::json config = getConfig();
-    std::string token = config["token"];
-    int64_t channelID = 872341868149637211; // Your channel ID
-    wool.setToken(token);
-    wool.connect_ws();
+    try{
+        Wool wool;
+        nlohmann::json config = getConfig();
+        std::string token = config["token"];
+        int64_t channelID = 872341868149637211; // Your channel ID
+        wool.setToken(token);
+        wool.connect_ws();
+    } catch (std::exception& e) {
+        SPDLOG_ERROR("std::exception: {}", e.what());
+    }
     return 0;
 }

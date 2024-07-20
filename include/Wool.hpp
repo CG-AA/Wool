@@ -18,6 +18,8 @@ private:
     std::atomic<int> LS{0};//last sequence (s in message)
     std::atomic<bool> ACK{false};
 
+    bool temp_inited = false;
+
     CURL *curl;
     CURLcode res;
     std::string readBuffer;
