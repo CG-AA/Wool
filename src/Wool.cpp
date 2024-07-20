@@ -22,13 +22,10 @@ Wool::~Wool() {
     curl_global_cleanup();
 }
 /**
- * @brief This function is called when the websocket connection is opened
- * 
- * create heartbeat thread
+ * create heartbeat thread and switch to general message handler
  */
 void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
     try{
-    if(this->temp_inited == false){
     nlohmann::json message = nlohmann::json::parse(msg->get_payload());
     WoolHelper::setHeartbeatInterval(*this, int(message["d"]["heartbeat_interval"]) * 0.9);
     SPDLOG_INFO("Heartbeat interval: {}", heartbeat_interval);
@@ -40,14 +37,32 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
                 {"op", 1},
                 {"d", int(this->LS)}
             };
-            SPDLOG_INFO("exploded after this line(1)");
-            WSpp.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
-            SPDLOG_INFO("exploded after this line(2)");
+if (hdl.expired()) {
+    SPDLOG_ERROR("Connection expired");
+    return;
+}
+SPDLOG_INFO("exploded after this line(0)");
+// Attempt to lock the weak pointer to get a shared pointer
+auto lockedHdl = hdl.lock();
+try {
+    // Upgrade the weak pointer to a shared_ptr to the connection object
+    websocketpp::connection_hdl con = websocketpp::endpoint::get_con_from_hdl<
+    
+    // Now you can interact with the connection object, for example:
+    // Print the remote endpoint address
+    SPDLOG_INFO("Connection address: {}", con->get_remote_endpoint());
+} catch (const websocketpp::exception& e) {
+    // Handle the case where the handle could not be upgraded
+    SPDLOG_ERROR("Failed to upgrade connection handle: {}", e.what());
+}
+SPDLOG_INFO("exploded after this line(1)");
+            this->WSpp.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
+SPDLOG_INFO("exploded after this line(2)");
             this->ACK = false;
-            SPDLOG_INFO("exploded after this line(3)");
+SPDLOG_INFO("exploded after this line(3)");
             std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
         }
-        SPDLOG_INFO("Program exploded after this line(4)");
+SPDLOG_INFO("Program exploded after this line(4)");
         this->WSpp.close(hdl, websocketpp::close::status::protocol_error, "Heartbeat ACK not received");
         SPDLOG_WARN("Didn't receive heartbeat ACK, attempting to reconnect...");
         this->connect_ws();
@@ -55,11 +70,9 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
     heartbeatThread.detach();
     SPDLOG_INFO("Heartbeat thread started");
     SPDLOG_INFO("Switching to general message handler");
-    // WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-    //     this->generalMessageHandler(hdl, msg);
-    // });
-    this->temp_inited = true;
-    }
+    WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+        this->generalMessageHandler(hdl, msg);
+    });
     SPDLOG_INFO("Received message: {}", msg->get_payload());
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("JSON parsing failed: {}", e.what());
