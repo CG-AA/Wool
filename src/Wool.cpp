@@ -20,6 +20,12 @@ Wool::~Wool() {
     curl_global_cleanup();
 }
 
+void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+    SPDLOG_INFO("Message from WS: {}", msg->get_payload());
+    
+}
+
+
 void Wool::connect_ws(){
     SPDLOG_INFO("Connecting to websocket...");
     SPDLOG_INFO("getting gateway URL...");

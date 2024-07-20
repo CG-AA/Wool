@@ -3,8 +3,12 @@
 #include <fstream>
 
 nlohmann::json getConfig(){
-    std::ifstream fileStream("config.json");
-    nlohmann::json config = nlohmann::json::parse(fileStream);
+    try {
+        std::ifstream fileStream("config.json");
+        nlohmann::json config = nlohmann::json::parse(fileStream);
+    } catch (nlohmann::json::parse_error& e) {
+        SPDLOG_ERROR("failed to parse config.json: {}", e.what());
+    }
     return config;
 }
 

@@ -25,6 +25,8 @@ private:
 
     static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
+    void initMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg);
+
     // void startHeartbeat();
 public:
 

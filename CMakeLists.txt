@@ -24,10 +24,9 @@ if(B_LIB)
 		fmt::fmt 
 		OpenSSL::SSL 
 		Boost::system
-		WebSocketPP::WebSocketPP
 	)
 
-	target_include_directories(${PROJECT_NAME} PRIVATE ${uWS_INCLUDE_DIR})
+	target_include_directories(${PROJECT_NAME} PRIVATE ${WEVSOCKETPP_INCLUDE_DIR})
 
 	include(GNUInstallDirs)
 
