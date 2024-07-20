@@ -28,15 +28,15 @@ Wool::~Wool() {
  */
 void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
     nlohmann::json message = nlohmann::json::parse(msg->get_payload());
-    WoolHelper::setHeartbeatInterval(*this, message["d"]["heartbeat_interval"] * 0.9);
+    WoolHelper::setHeartbeatInterval(*this, int(message["d"]["heartbeat_interval"]) * 0.9);
     SPDLOG_INFO("Heartbeat interval: {}", heartbeat_interval);
     this->ACK = true;
-    std::thread heartbeatThread([this](){
+    std::thread heartbeatThread([this, &hdl](){
         std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval) * (std::rand()%100) / 100);
         while (this->ACK) {
             nlohmann::json heartbeat = {
                 {"op", 1},
-                {"d", this->LS}
+                {"d", int(this->LS)}
             };
             WSpp.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
             this->ACK = false;
@@ -48,7 +48,23 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
     });
     heartbeatThread.detach();
     SPDLOG_INFO("Heartbeat thread started");
+    SPDLOG_INFO("Switching to general message handler");
+    WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+        this->generalMessageHandler(hdl, msg);
+    });
 }
+
+void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+    nlohmann::json message = nlohmann::json::parse(msg->get_payload());
+    this->LS = message["s"];
+    if (message["op"] == 11) {
+        this->ACK = true;
+        SPDLOG_INFO("Heartbeat ACK received");
+        return;
+    }
+    SPDLOG_INFO("Received message: {}", message.dump());
+}
+
 
 
 void Wool::connect_ws(){
@@ -78,29 +94,25 @@ void Wool::connect_ws(){
         }
     }
     try {
-        ws_client WSC;
-        WSC.init_asio();
+        WSpp.init_asio();
         //tlsv12 init
-        WSC.set_tls_init_handler([](websocketpp::connection_hdl) {
+        WSpp.set_tls_init_handler([](websocketpp::connection_hdl) {
             return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
         });
-        messageHandler = std::make_unique<std::function<void(websocketpp::connection_hdl, ws_client::message_ptr)>>(
-            [this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-                this->initMessageHandler(hdl, msg);
-            }
-        );
-        WSC.set_message_handler(this->messageHandler.get());
-        WSC.set_open_handler([&WSC](websocketpp::connection_hdl hdl) {
+        WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+            this->initMessageHandler(hdl, msg);
+        });
+        WSpp.set_open_handler([](websocketpp::connection_hdl hdl) {
             SPDLOG_INFO("Connected to Discord websocket :D");
         });
         websocketpp::lib::error_code ec;    // check ec to see if there were errors
-        auto conn = WSC.get_connection(WSS_URL, ec);
+        auto conn = WSpp.get_connection(WSS_URL, ec);
         if (ec) {
             SPDLOG_ERROR("Could not create connection because: {}", ec.message());
             return;
         }
-        WSC.connect(conn);
-        WSC.run();
+        WSpp.connect(conn);
+        WSpp.run();
     } catch (websocketpp::exception const & e) {
         SPDLOG_ERROR("Websocketpp exception: {}", e.what());
     } catch (std::exception const & e) {

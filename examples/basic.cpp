@@ -1,11 +1,13 @@
 #include <Wool/Wool.hpp>
 #include <nlohmann/json.hpp>
 #include <fstream>
+#include <spdlog/spdlog.h>
 
 nlohmann::json getConfig(){
+    nlohmann::json config;
     try {
         std::ifstream fileStream("config.json");
-        nlohmann::json config = nlohmann::json::parse(fileStream);
+        config = nlohmann::json::parse(fileStream);
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("failed to parse config.json: {}", e.what());
     }
@@ -19,7 +21,5 @@ int main() {
     int64_t channelID = 872341868149637211; // Your channel ID
     wool.setToken(token);
     wool.connect_ws();
-    wool.sendMsg("Hello, World!", channelID, true);
-    wool.~Wool();
     return 0;
 }
