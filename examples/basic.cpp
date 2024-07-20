@@ -16,8 +16,8 @@ nlohmann::json getConfig(){
 
 
 int main() {
+    Wool wool;
     try{
-        Wool wool;
         nlohmann::json config = getConfig();
         std::string token = config["token"];
         int64_t channelID = 872341868149637211; // Your channel ID
@@ -26,5 +26,6 @@ int main() {
     } catch (std::exception& e) {
         SPDLOG_ERROR("std::exception: {}", e.what());
     }
+    SPDLOG_DEBUG("Exiting...");
     return 0;
 }

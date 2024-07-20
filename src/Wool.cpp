@@ -28,6 +28,7 @@ Wool::~Wool() {
  */
 void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
     try{
+    if(this->temp_inited == false){
     nlohmann::json message = nlohmann::json::parse(msg->get_payload());
     WoolHelper::setHeartbeatInterval(*this, int(message["d"]["heartbeat_interval"]) * 0.9);
     SPDLOG_INFO("Heartbeat interval: {}", heartbeat_interval);
@@ -39,10 +40,14 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
                 {"op", 1},
                 {"d", int(this->LS)}
             };
+            SPDLOG_INFO("exploded after this line(1)");
             WSpp.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
+            SPDLOG_INFO("exploded after this line(2)");
             this->ACK = false;
+            SPDLOG_INFO("exploded after this line(3)");
             std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
         }
+        SPDLOG_INFO("Program exploded after this line(4)");
         this->WSpp.close(hdl, websocketpp::close::status::protocol_error, "Heartbeat ACK not received");
         SPDLOG_WARN("Didn't receive heartbeat ACK, attempting to reconnect...");
         this->connect_ws();
@@ -50,9 +55,12 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
     heartbeatThread.detach();
     SPDLOG_INFO("Heartbeat thread started");
     SPDLOG_INFO("Switching to general message handler");
-    WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-        this->generalMessageHandler(hdl, msg);
-    });
+    // WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+    //     this->generalMessageHandler(hdl, msg);
+    // });
+    this->temp_inited = true;
+    }
+    SPDLOG_INFO("Received message: {}", msg->get_payload());
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("JSON parsing failed: {}", e.what());
     } catch (std::exception& e) {
