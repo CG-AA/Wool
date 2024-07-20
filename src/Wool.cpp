@@ -84,7 +84,12 @@ void Wool::connect_ws(){
         WSC.set_tls_init_handler([](websocketpp::connection_hdl) {
             return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
         });
-        WSC.set_message_handler(this->initMessageHandler);
+        messageHandler = std::make_unique<std::function<void(websocketpp::connection_hdl, ws_client::message_ptr)>>(
+            [this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+                this->initMessageHandler(hdl, msg);
+            }
+        );
+        WSC.set_message_handler(this->messageHandler.get());
         WSC.set_open_handler([&WSC](websocketpp::connection_hdl hdl) {
             SPDLOG_INFO("Connected to Discord websocket :D");
         });

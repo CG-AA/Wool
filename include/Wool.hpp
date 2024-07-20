@@ -11,7 +11,6 @@ typedef websocketpp::client<websocketpp::config::asio_tls_client> ws_client;
 class Wool {
 friend class WoolHelper;
 private:
-
     std::string PUBKEY;
     std::string token;
     std::string WSS_URL;
@@ -28,6 +27,7 @@ private:
     static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
     void initMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg);
+    std::unique_ptr<std::function<void(websocketpp::connection_hdl, ws_client::message_ptr)>> messageHandler;
     void generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg);
 
     // void startHeartbeat();
