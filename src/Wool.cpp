@@ -1,5 +1,7 @@
 #include "../include/Wool.hpp"
 #include <spdlog/spdlog.h>
+#include <chrono>
+#include <thread>
 
 // data received(void *contents) to string(std::string *userp)
 //used by curl
@@ -21,8 +23,20 @@ Wool::~Wool() {
 }
 
 void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-    SPDLOG_INFO("Message from WS: {}", msg->get_payload());
-    
+    nlohmann::json message = nlohmann::json::parse(msg->get_payload());
+    WoolHelper::setHeartbeatInterval(*this, message["d"]["heartbeat_interval"] * 0.9);
+    SPDLOG_INFO("Heartbeat interval: {}", heartbeat_interval);
+    std::thread heartbeatThread([this](){
+        std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval) * std::rand()%100 / 100);
+        while (true) {
+            nlohmann::json heartbeat = {
+                {"op", 1},
+                {"d", 251}
+            };
+            WSpp.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
+            std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
+        }
+    });
 }
 
 
