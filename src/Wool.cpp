@@ -50,7 +50,6 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
     SPDLOG_INFO("Heartbeat thread started");
     SPDLOG_INFO("Switching to general message handler");
     WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-        SPDLOG_INFO("Switched to general message handler");
         this->generalMessageHandler(hdl, msg);
     });
     } catch (nlohmann::json::parse_error& e) {
@@ -63,13 +62,13 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
 void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
     try{
         nlohmann::json message = nlohmann::json::parse(msg->get_payload());
-        this->LS = message["s"];
+        this->LS = int(message["s"]);
         if (message["op"] == 11) {
             this->ACK = true;
             SPDLOG_INFO("Heartbeat ACK received");
             return;
         }
-        SPDLOG_INFO("Received message: {}", message.dump());
+        SPDLOG_INFO("(G)Received message: {}", message.dump());
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("JSON parsing failed: {}", e.what());
     } catch (std::exception& e) {
@@ -108,6 +107,8 @@ void Wool::connect_ws(){
     readBuffer.clear();
     curl_slist_free_all(headers);
 
+    WSpp.set_access_channels(websocketpp::log::alevel::all);
+
     WSpp.init_asio();
     //tlsv12 init
     WSpp.set_tls_init_handler([](websocketpp::connection_hdl) {
@@ -115,6 +116,10 @@ void Wool::connect_ws(){
     });
     WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
         this->initMessageHandler(hdl, msg);
+    });
+    WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+        SPDLOG_INFO("G handler");
+        this->generalMessageHandler(hdl, msg);
     });
     WSpp.set_open_handler([](websocketpp::connection_hdl hdl) {
         SPDLOG_INFO("Connected to Discord websocket :D");
