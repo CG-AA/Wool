@@ -76,6 +76,7 @@ void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::mes
 }
 
 void Wool::sendIdentify(websocketpp::connection_hdl hdl) {
+    int intents = (1 << 9);
     nlohmann::json identify = {
         {"op", 2},
         {"d", {
