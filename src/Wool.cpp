@@ -27,31 +27,39 @@ Wool::~Wool() {
  */
 void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
     try{
-    nlohmann::json message = nlohmann::json::parse(msg->get_payload());
-    SPDLOG_INFO("Received message: {}", message.dump());
-    this->HeartbeatInterval = int(message["d"]["heartbeat_interval"]) * 0.9;
-    SPDLOG_INFO("Heartbeat interval: {}", heartbeat_interval);
-    this->ACK = true;
-    std::thread heartbeatThread([this, hdl](){
-        std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval) * (std::rand()%100) / 100);
-        while (this->ACK) {
-            nlohmann::json heartbeat = {
-                {"op", 1},
-                {"d", int(this->LS)}
-            };
-            this->WSpp.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
-            this->ACK = false;
-            std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
+        nlohmann::json message = nlohmann::json::parse(msg->get_payload());
+        SPDLOG_INFO("Received message: {}", message.dump());
+        if(!inited){    //handle HELLO message
+            inited = true;
+            heartbeat_interval = int(message["d"]["heartbeat_interval"]) * 0.9;
+            SPDLOG_INFO("Heartbeat interval: {}", heartbeat_interval);
+            ACK = true;
+            std::thread heartbeatThread([this, hdl](){
+                std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval) * (std::rand()%100) / 100);
+                while (this->ACK) {
+                    nlohmann::json heartbeat = {
+                        {"op", 1},
+                        {"d", int(this->LS)}
+                    };
+                    this->WSpp.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
+                    this->ACK = false;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
+                }
+                this->WSpp.close(hdl, websocketpp::close::status::protocol_error, "Heartbeat ACK not received");
+                SPDLOG_WARN("Didn't receive heartbeat ACK, attempting to reconnect...");
+                this->reconnect_ws();
+            });
+            heartbeatThread.detach();
+            SPDLOG_INFO("Heartbeat thread started");
+            sendIdentify(hdl);
+        } else {    //handle READY message
+            if(message["t"].get<std::string>() != "READY") {
+                return;
+            }
+            APPID = int(message["d"]["application"]["id"]);
+            SPDLOG_INFO("Switching to general message handler");
+            messageHandler = &Wool::generalMessageHandler;
         }
-        this->WSpp.close(hdl, websocketpp::close::status::protocol_error, "Heartbeat ACK not received");
-        SPDLOG_WARN("Didn't receive heartbeat ACK, attempting to reconnect...");
-        this->connect_ws();
-    });
-    heartbeatThread.detach();
-    SPDLOG_INFO("Heartbeat thread started");
-    SPDLOG_INFO("Switching to general message handler");
-    this->messageHandler = &Wool::generalMessageHandler;
-    this->sendIdentify(hdl);
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("JSON parsing failed: {}", e.what());
     } catch (std::exception& e) {
@@ -62,17 +70,20 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
 void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
     try{
         nlohmann::json message = nlohmann::json::parse(msg->get_payload());
+        // update last sequence
         if (!message["s"].empty())this->LS = int(message["s"]);
+        // handle heartbeat ACK
         if (message["op"] == 11) {
-            this->ACK = true;
+            ACK = true;
             SPDLOG_INFO("Heartbeat ACK received");
             return;
         }
+        SPDLOG_INFO("Received message: {}", message.dump());
         int64_t authorID = message["d"]["author"]["id"];
+        std::string authorName = message["d"]["author"]["username"];
         std::string content = message["d"]["content"];
-        if (authorID == ) {
+        SPDLOG_INFO("Author: {}({}), Content: {}", authorName, authorID, content);
 
-        }
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("JSON parsing failed: {}", e.what());
     } catch (std::exception& e) {
@@ -154,6 +165,25 @@ void Wool::connect_ws(){
     WSpp.connect(conn);
     WSpp.run();
 }//connect_ws
+
+void Wool::reconnect_ws(){
+    try{
+        SPDLOG_INFO("Reconnecting to websocket...");
+        LS = 0;
+        ACK = false;
+        inited = false;
+        messageHandler = &Wool::initMessageHandler;
+        websocketpp::lib::error_code ec;    // check ec to see if there were errors
+        auto conn = WSpp.get_connection(WSS_URL, ec);
+        if (ec) {
+            SPDLOG_ERROR("Could not create connection because: {}", ec.message());
+            return;
+        }
+        WSpp.connect(conn);
+    } catch (std::exception& e) {
+        SPDLOG_ERROR("std::exception: {}", e.what());
+    }
+}
 
 void Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
     curl_easy_reset(curl);
