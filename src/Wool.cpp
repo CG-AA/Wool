@@ -75,7 +75,21 @@ void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::mes
     }
 }
 
-
+void Wool::sendIdentify(websocketpp::connection_hdl hdl) {
+    nlohmann::json identify = {
+        {"op", 2},
+        {"d", {
+            {"token", token},
+            {"properties", {
+                {"$os", "linux"},
+                {"$browser", "Wool"},
+                {"$device", "Wool"}
+            }}
+        }}
+    };
+    SPDLOG_INFO("Sending identify message: {}", identify.dump());
+    WSpp.send(hdl, identify.dump(), websocketpp::frame::opcode::text);
+}
 
 void Wool::connect_ws(){
     SPDLOG_INFO("Connecting to websocket...");
