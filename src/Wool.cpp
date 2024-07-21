@@ -51,6 +51,7 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
     SPDLOG_INFO("Heartbeat thread started");
     SPDLOG_INFO("Switching to general message handler");
     this->messageHandler = &Wool::generalMessageHandler;
+    this->sendIdentify(hdl);
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("JSON parsing failed: {}", e.what());
     } catch (std::exception& e) {
@@ -67,7 +68,8 @@ void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::mes
             SPDLOG_INFO("Heartbeat ACK received");
             return;
         }
-        SPDLOG_INFO("(G)Received message: {}", message.dump());
+        int64_t authorID = message["d"]["author"]["id"];
+        std::string content = message["d"]["content"];
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("JSON parsing failed: {}", e.what());
     } catch (std::exception& e) {
@@ -81,6 +83,7 @@ void Wool::sendIdentify(websocketpp::connection_hdl hdl) {
         {"op", 2},
         {"d", {
             {"token", token},
+            {"intents", intents},
             {"properties", {
                 {"$os", "linux"},
                 {"$browser", "Wool"},
