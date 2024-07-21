@@ -14,7 +14,7 @@ friend class WoolHelper;
 private:
     std::string PUBKEY = ""; // wait for implent
     std::string token = "";
-    int APPID = 0;
+    std::string APPID = "";
     std::string WSS_URL;
     int heartbeat_interval;
     std::atomic<int> LS{0};//last sequence (s in message)
@@ -34,6 +34,9 @@ private:
     void initMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg);
     void generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg);
 
+    // user-defined message handlers (string)
+    std::function<void(std::string)> onWssMessage;
+
     void sendIdentify(websocketpp::connection_hdl hdl);
 
     void reconnect_ws();
@@ -43,6 +46,10 @@ public:
         this->PUBKEY = pubkey;}
     void setToken(std::string token){
         this->token = token;}
+    
+    void setWssMessageHandler(const std::function<void(std::string)> &handler){
+        onWssMessage = handler;
+    }
 
     Wool(); // Constructor
     ~Wool(); // Destructor

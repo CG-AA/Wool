@@ -28,7 +28,7 @@ Wool::~Wool() {
 void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
     try{
         nlohmann::json message = nlohmann::json::parse(msg->get_payload());
-        SPDLOG_INFO("Received message: {}", message.dump());
+        SPDLOG_DEBUG("Received message: {}", message.dump());
         if(!inited){    //handle HELLO message
             inited = true;
             heartbeat_interval = int(message["d"]["heartbeat_interval"]) * 0.9;
@@ -56,7 +56,8 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
             if(message["t"].get<std::string>() != "READY") {
                 return;
             }
-            APPID = int(message["d"]["application"]["id"]);
+            APPID = message["d"]["application"]["id"];
+            SPDLOG_INFO("Application ID: {}", APPID);
             SPDLOG_INFO("Switching to general message handler");
             messageHandler = &Wool::generalMessageHandler;
         }
@@ -75,15 +76,11 @@ void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::mes
         // handle heartbeat ACK
         if (message["op"] == 11) {
             ACK = true;
-            SPDLOG_INFO("Heartbeat ACK received");
+            SPDLOG_DEBUG("Heartbeat ACK received");
             return;
         }
-        SPDLOG_INFO("Received message: {}", message.dump());
-        int64_t authorID = message["d"]["author"]["id"];
-        std::string authorName = message["d"]["author"]["username"];
-        std::string content = message["d"]["content"];
-        SPDLOG_INFO("Author: {}({}), Content: {}", authorName, authorID, content);
-
+        // give message to user-defined handler
+        onWssMessage(message.dump());
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("JSON parsing failed: {}", e.what());
     } catch (std::exception& e) {
@@ -113,6 +110,11 @@ void Wool::connect_ws(){
     if(token.empty()){
         SPDLOG_ERROR("Token is empty");
         throw std::runtime_error("Token is empty");
+        return;
+    }
+    if(!onWssMessage){
+        SPDLOG_ERROR("onWssMessage is not set");
+        throw std::runtime_error("onWssMessage is not set");
         return;
     }
     SPDLOG_INFO("Connecting to websocket...");
