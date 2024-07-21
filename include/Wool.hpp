@@ -5,6 +5,7 @@
 #include <nlohmann/json.hpp>
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_client.hpp>
+#include <mutex>
 
 typedef websocketpp::client<websocketpp::config::asio_tls_client> ws_client;
 
@@ -26,6 +27,7 @@ private:
 
     static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
+    void (Wool::*messageHandler)(websocketpp::connection_hdl, ws_client::message_ptr) = &Wool::initMessageHandler;
     void initMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg);
     void generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg);
 

@@ -21,6 +21,7 @@ Wool::Wool() {
 Wool::~Wool() {
     curl_global_cleanup();
 }
+
 /**
  * create heartbeat thread and switch to general message handler
  */
@@ -49,9 +50,7 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
     heartbeatThread.detach();
     SPDLOG_INFO("Heartbeat thread started");
     SPDLOG_INFO("Switching to general message handler");
-    WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-        this->generalMessageHandler(hdl, msg);
-    });
+    this->messageHandler = &Wool::generalMessageHandler;
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("JSON parsing failed: {}", e.what());
     } catch (std::exception& e) {
@@ -62,7 +61,7 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
 void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
     try{
         nlohmann::json message = nlohmann::json::parse(msg->get_payload());
-        this->LS = int(message["s"]);
+        if (!message["s"].empty())this->LS = int(message["s"]);
         if (message["op"] == 11) {
             this->ACK = true;
             SPDLOG_INFO("Heartbeat ACK received");
@@ -115,11 +114,7 @@ void Wool::connect_ws(){
         return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
     });
     WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-        this->initMessageHandler(hdl, msg);
-    });
-    WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-        SPDLOG_INFO("G handler");
-        this->generalMessageHandler(hdl, msg);
+        (this->*messageHandler)(hdl, msg);
     });
     WSpp.set_open_handler([](websocketpp::connection_hdl hdl) {
         SPDLOG_INFO("Connected to Discord websocket :D");
