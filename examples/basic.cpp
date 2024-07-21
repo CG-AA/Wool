@@ -20,7 +20,7 @@ int main() {
     try{
         nlohmann::json config = getConfig();
         std::string token = config["token"];
-        int64_t channelID = 872341868149637211; // Your channel ID
+        int64_t channelID = 872341868149637211;
         wool.setToken(token);
         wool.connect_ws();
     } catch (std::exception& e) {

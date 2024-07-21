@@ -70,6 +70,9 @@ void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::mes
         }
         int64_t authorID = message["d"]["author"]["id"];
         std::string content = message["d"]["content"];
+        if (authorID == ) {
+
+        }
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("JSON parsing failed: {}", e.what());
     } catch (std::exception& e) {
@@ -96,6 +99,11 @@ void Wool::sendIdentify(websocketpp::connection_hdl hdl) {
 }
 
 void Wool::connect_ws(){
+    if(token.empty()){
+        SPDLOG_ERROR("Token is empty");
+        throw std::runtime_error("Token is empty");
+        return;
+    }
     SPDLOG_INFO("Connecting to websocket...");
     SPDLOG_INFO("getting gateway URL...");
     curl_easy_reset(curl);

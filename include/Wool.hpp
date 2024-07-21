@@ -12,8 +12,8 @@ typedef websocketpp::client<websocketpp::config::asio_tls_client> ws_client;
 class Wool {
 friend class WoolHelper;
 private:
-    std::string PUBKEY;
-    std::string token;
+    std::string PUBKEY = ""; // wait for implent
+    std::string token = "";
     std::string WSS_URL;
     int heartbeat_interval;
     std::atomic<int> LS{0};//last sequence (s in message)
