@@ -4,7 +4,7 @@
 #include <thread>
 
 // data received(void *contents) to string(std::string *userp)
-//used by curl
+// used by curl
 size_t Wool::WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     // Cast userp back to Wool* to access instance data
     Wool* instance = static_cast<Wool*>(userp);
@@ -29,7 +29,7 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
     try{
     nlohmann::json message = nlohmann::json::parse(msg->get_payload());
     SPDLOG_INFO("Received message: {}", message.dump());
-    WoolHelper::setHeartbeatInterval(*this, int(message["d"]["heartbeat_interval"]) * 0.9);
+    this->HeartbeatInterval = int(message["d"]["heartbeat_interval"]) * 0.9;
     SPDLOG_INFO("Heartbeat interval: {}", heartbeat_interval);
     this->ACK = true;
     std::thread heartbeatThread([this, hdl](){
