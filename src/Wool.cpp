@@ -76,12 +76,29 @@ void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::mes
             SPDLOG_DEBUG("Heartbeat ACK received");
             return;
         }
-        nlohmann::json message = nlohmann::json::parse(msg->get_payload());
-        SPDLOG_INFO("Received message: {}", msg->get_payload());
-        // update last sequence
-        if (!message["s"].empty())this->LS = int(message["s"]);
+        //handle sequence manually (its faster than using the json lib)
+        //about 80x faster
+        std::string payload = msg->get_payload();
+        size_t startPos = payload.find("\"s\":");
+        if (startPos != std::string::npos) {
+            startPos += 4; // Move past the key and the colon
+            size_t endPos = payload.find_first_of(',', startPos);
+            if (endPos != std::string::npos) {
+                std::string sValueStr = payload.substr(startPos, endPos - startPos);
+                // Convert to int or leave as string depending on your needs
+                try {
+                    int sValue = std::stoi(sValueStr);
+                    this->LS = sValue; // Assuming LS is an int member variable for last sequence
+                    SPDLOG_DEBUG("Updated LS to {}", sValue);
+                } catch (const std::invalid_argument& e) {
+                    SPDLOG_ERROR("Invalid argument: {}", e.what());
+                } catch (const std::out_of_range& e) {
+                    SPDLOG_ERROR("Out of range: {}", e.what());
+                }
+            }
+        }
         // give message to user-defined handler
-        onWssMessage(msg->get_payload());
+        onWssMessage(payload);
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("JSON parsing failed: {}", e.what());
     } catch (std::exception& e) {
