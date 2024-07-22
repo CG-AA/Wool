@@ -42,15 +42,26 @@ private:
 public:
     class Message {
     public:
+        struct embed{
+
+        };
+        struct allowed_mentions{
+            
+        };
+        struct message_reference{
+            
+        };
+        struct components{
+            
+        };
         int64_t channelID;
         std::string content;
         // nonce (todo)
         bool tts = false;
-        struct embed{
-
-        };
-    private:
         std::vector<nlohmann::json> embeds;
+        nlohmann::json allowed_mentions;
+        nlohmann::json message_reference;
+        nlohmann::json components;
     };
     
     void setPUBKEY(std::string pubkey){
