@@ -71,6 +71,7 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
 void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
     try{
         nlohmann::json message = nlohmann::json::parse(msg->get_payload());
+        SPDLOG_INFO("Received message: {}", msg->get_payload());
         // update last sequence
         if (!message["s"].empty())this->LS = int(message["s"]);
         // handle heartbeat ACK
@@ -80,7 +81,7 @@ void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::mes
             return;
         }
         // give message to user-defined handler
-        onWssMessage(message.dump());
+        onWssMessage(msg->get_payload());
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("JSON parsing failed: {}", e.what());
     } catch (std::exception& e) {
