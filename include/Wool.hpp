@@ -1,3 +1,4 @@
+#pragma once
 #ifndef WOOL_HPP
 #define WOOL_HPP
 
@@ -40,47 +41,6 @@ private:
 
     void reconnect_ws();
 public:
-    class Message {
-    public:
-        struct embed{
-            std::string title;
-            std::string type;
-            std::string description;
-            std::string url;
-            std::string timestamp;
-            int32_t color;
-        };
-        struct allowed_mentions{
-            bool everyone = false;
-            bool roles = false;
-            bool users = false;
-            std::vector<int64_t> roles_ids;
-            std::vector<int64_t> users_ids;
-            bool replied_user = false;
-        };
-        struct message_reference{
-            
-        };
-        struct components{
-            
-        };
-        struct poll{
-            
-        };
-        int64_t channelID;
-        std::string content;
-        // nonce (todo)
-        bool tts = false;
-        std::vector<nlohmann::json> embeds;
-        nlohmann::json allowed_mentions;
-        nlohmann::json message_reference;
-        nlohmann::json components;
-        std::vector<int64_t> sticker_ids;//I don't know what this is
-        // files and payload_json (todo)
-        // attachments (todo)
-        int64_t flags = 0;
-        // enforce_nonce (todo)
-    };
     
     void setPUBKEY(std::string pubkey){
         this->PUBKEY = pubkey;}
