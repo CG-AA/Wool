@@ -18,7 +18,12 @@ public:
         bool fail_if_not_exists = true;
     };
     struct components{
-        std::vector<std::any> components;
+        struct action_row{
+            std::vector<std::any> components;
+        };
+        struct button{
+            std::string style;
+            std::string label;
     };
     struct poll{
         
@@ -36,6 +41,7 @@ public:
     // attachments (todo)
     int64_t flags = 0;
     // enforce_nonce (todo)
+    nlohmann::json poll;
 };
 
 #endif
