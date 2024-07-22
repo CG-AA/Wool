@@ -1,4 +1,3 @@
-#pragma once
 #ifndef WOOL_HPP
 #define WOOL_HPP
 
