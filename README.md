@@ -11,6 +11,7 @@ Wool is a modern C++ library designed to make Discord bot development easier and
 ### todo
 - **sharding**: Support for sharding to distribute bot load across multiple instances.
 - **rate limiting**: Automatic rate limiting to prevent bot abuse and ensure compliance with Discord's API guidelines.
+- **nonce support**: Support for nonces to prevent duplicate messages and ensure message integrity.
 
 ## Getting Started
 

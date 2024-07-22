@@ -10,9 +10,8 @@
 typedef websocketpp::client<websocketpp::config::asio_tls_client> ws_client;
 
 class Wool {
-friend class WoolHelper;
 private:
-    std::string PUBKEY = ""; // wait for implent
+    // std::string PUBKEY = ""; //might not be needed
     std::string token = "";
     std::string APPID = "";
     std::string WSS_URL;
@@ -41,7 +40,19 @@ private:
 
     void reconnect_ws();
 public:
+    class Message {
+    public:
+        int64_t channelID;
+        std::string content;
+        // nonce (todo)
+        bool tts = false;
+        struct embed{
 
+        };
+    private:
+        std::vector<nlohmann::json> embeds;
+    };
+    
     void setPUBKEY(std::string pubkey){
         this->PUBKEY = pubkey;}
     void setToken(std::string token){
