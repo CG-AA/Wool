@@ -22,6 +22,8 @@ int main() {
         std::string token = config["token"];
         int64_t channelID = 872341868149637211;
         wool.setToken(token);
+        wool.setWssMessageHandler([](std::string message){
+        });
         wool.connect_ws();
     } catch (std::exception& e) {
         SPDLOG_ERROR("std::exception: {}", e.what());

@@ -70,16 +70,16 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
 
 void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
     try{
-        nlohmann::json message = nlohmann::json::parse(msg->get_payload());
-        SPDLOG_INFO("Received message: {}", msg->get_payload());
-        // update last sequence
-        if (!message["s"].empty())this->LS = int(message["s"]);
         // handle heartbeat ACK
-        if (message["op"] == 11) {
+        if (msg->get_payload() == "{\"t\":null,\"s\":null,\"op\":11,\"d\":null}") {
             ACK = true;
             SPDLOG_DEBUG("Heartbeat ACK received");
             return;
         }
+        nlohmann::json message = nlohmann::json::parse(msg->get_payload());
+        SPDLOG_INFO("Received message: {}", msg->get_payload());
+        // update last sequence
+        if (!message["s"].empty())this->LS = int(message["s"]);
         // give message to user-defined handler
         onWssMessage(msg->get_payload());
     } catch (nlohmann::json::parse_error& e) {
