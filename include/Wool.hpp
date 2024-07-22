@@ -51,7 +51,12 @@ public:
             int32_t color;
         };
         struct allowed_mentions{
-            
+            bool everyone = false;
+            bool roles = false;
+            bool users = false;
+            std::vector<int64_t> roles_ids;
+            std::vector<int64_t> users_ids;
+            bool replied_user = false;
         };
         struct message_reference{
             
