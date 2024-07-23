@@ -1,20 +1,20 @@
 #ifndef MESSAGE_HPP
 #define MESSAGE_HPP
-
+#define snowflake int64_t
 class Message {
 public:
     struct allowed_mentions{
         bool everyone = false;
         bool roles = true;
         bool users = true;
-        std::vector<int64_t> roles_ids;
-        std::vector<int64_t> users_ids;
+        std::vector<snowflake> roles_ids;
+        std::vector<snowflake> users_ids;
         bool replied_user = false;
     };
     struct message_reference{
         int8_t type = 0;
-        int64_t message_id;
-        int64_t channel_id;
+        snowflake message_id;
+        snowflake channel_id;
         bool fail_if_not_exists = true;
     };
     struct components{
@@ -23,39 +23,40 @@ public:
         };
         struct button{
             std::string style;
-            std::string label;
-            std::string emoji;
-            std::string custom_id;
-            int64_t sku_id;
-            std::string url;
-            bool disabled = false;
+            std::string label;//optional
+            std::string emoji;//optional
+            std::string custom_id;//optional
+            snowflake sku_id;//optional
+            std::string url;//optional
+            bool disabled = false;//optional
         };
         struct select_menu{
+            int8_t type = 3;
             struct option{
                 std::string label;
                 std::string value;
-                std::string description;
-                std::string emoji;
-                bool default = false;
+                std::string description;//optional
+                std::string emoji;//optional
+                bool default = false;//optional
             };
             std::string custom_id;
             std::vector<option> options;//optional
-            std::vector<channel_type> channel_types;//optional
+            std::vector<std::string> channel_types;//optional
             std::string placeholder;//optional
-            int64_t min_values;//optional
-            int64_t max_values;//optional
+            snowflake min_values;//optional
+            snowflake max_values;//optional
             bool disabled = false;//optional
         };
         struct emoji{
             std::string name;
-            int64_t id;
+            snowflake id;
             bool animated = false;
         };
     };
     struct poll{
         
     };
-    int64_t channelID;
+    snowflake channelID;
     std::string content;
     // nonce (todo)
     bool tts = false;
@@ -63,10 +64,10 @@ public:
     nlohmann::json allowed_mentions;
     nlohmann::json message_reference;
     nlohmann::json components;
-    std::vector<int64_t> sticker_ids;//I don't know what this is
+    std::vector<snowflake> sticker_ids;//I don't know what this is
     // files and payload_json (todo)
     // attachments (todo)
-    int64_t flags = 0;
+    snowflake flags = 0;
     // enforce_nonce (todo)
     nlohmann::json poll;
 };
