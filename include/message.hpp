@@ -31,13 +31,20 @@ public:
             bool disabled = false;
         };
         struct select_menu{
+            struct option{
+                std::string label;
+                std::string value;
+                std::string description;
+                std::string emoji;
+                bool default = false;
+            };
             std::string custom_id;
-            std::vector<option> options;
-            std::vector<channel_types> placeholder;
-            std::string placeholder;
-            int64_t min_values;
-            int64_t max_values;
-            bool disabled = false;
+            std::vector<option> options;//optional
+            std::vector<channel_type> channel_types;//optional
+            std::string placeholder;//optional
+            int64_t min_values;//optional
+            int64_t max_values;//optional
+            bool disabled = false;//optional
         };
         struct emoji{
             std::string name;
