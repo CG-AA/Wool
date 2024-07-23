@@ -24,6 +24,17 @@ public:
         struct button{
             std::string style;
             std::string label;
+            std::string emoji;
+            std::string custom_id;
+            int64_t sku_id;
+            std::string url;
+            bool disabled = false;
+        };
+        struct emoji{
+            std::string name;
+            int64_t id;
+            bool animated = false;
+        };
     };
     struct poll{
         
