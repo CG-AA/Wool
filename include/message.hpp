@@ -30,6 +30,15 @@ public:
             std::string url;
             bool disabled = false;
         };
+        struct select_menu{
+            std::string custom_id;
+            std::vector<option> options;
+            std::vector<channel_types> placeholder;
+            std::string placeholder;
+            int64_t min_values;
+            int64_t max_values;
+            bool disabled = false;
+        };
         struct emoji{
             std::string name;
             int64_t id;
