@@ -1,3 +1,7 @@
+#include <nlohmann/json.hpp>
+#include <vector>
+#include <any>
+#include <string>
 #ifndef MESSAGE_HPP
 #define MESSAGE_HPP
 #define snowflake int64_t
@@ -19,14 +23,14 @@ public:
     };
     struct components{
         struct action_row{
-            std::vector<std::any> components;
+            std::vector<std::vector<std::any>> components;
         };
         struct button{
             std::string style;
             std::string label;//optional
             std::string emoji;//optional
             std::string custom_id;//optional
-            snowflake sku_id;//optional
+            snowflake sku_id = 0;//optional
             std::string url;//optional
             bool disabled = false;//optional
         };
@@ -39,18 +43,23 @@ public:
                 std::string emoji;//optional
                 bool default = false;//optional
             };
+            struct default_value{
+                snowflake id;
+                std::string value;
+            }
             std::string custom_id;
             std::vector<option> options;//optional
             std::vector<std::string> channel_types;//optional
             std::string placeholder;//optional
-            snowflake min_values;//optional
-            snowflake max_values;//optional
+
+            snowflake min_values = 1;//optional
+            snowflake max_values = 1;//optional
             bool disabled = false;//optional
         };
         struct emoji{
             std::string name;
             snowflake id;
-            bool animated = false;
+            bool animated = false;//optional
         };
     };
     struct poll{
