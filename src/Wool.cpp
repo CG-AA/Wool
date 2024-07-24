@@ -205,25 +205,25 @@ void Wool::reconnect_ws(){
     }
 }
 
-void Wool::sendHTTP(std::string path, std::string method, std::string data){
+void Wool::sendHTTP(const std::string& path, const std::string& method, const std::string& data) {
     curl_easy_reset(curl);
     std::string url = "https://discord.com/api/v10/" + path;
 
-    struct curl_slist *headers = NULL;
+    struct curl_slist* headers = nullptr;
     headers = curl_slist_append(headers, ("Authorization: Bot " + token).c_str());
     headers = curl_slist_append(headers, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+    if (method == "POST") {
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+    }
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, method.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
-    // Perform the request, res will get the return code
-    res = curl_easy_perform(curl);
-    // Check for errors
-    if(res != CURLE_OK) {
-        SPDLOG_WARN("curl_easy_perform() failed: {}", curl_easy_strerror(res));
+    CURLcode res = curl_easy_perform(curl);
+    if (res != CURLE_OK) {
+        SPDLOG_WARN("message failed to send: {}", curl_easy_strerror(res));
     } else {
         SPDLOG_INFO("message sent: {}", readBuffer);
     }
