@@ -205,28 +205,17 @@ void Wool::reconnect_ws(){
     }
 }
 
-void Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
+void Wool::sendHTTP(std::string path, std::string method, std::string data){
     curl_easy_reset(curl);
-    std::string url = "https://discord.com/api/v10/channels/" + std::to_string(channelID) + "/messages";
-    nlohmann::json allowed_mentions;
-    if (allowMention) {
-        allowed_mentions = {{"parse", {"users", "roles", "everyone"}}};
-    } else {
-        allowed_mentions = {{"parse", {}}};
-    }
+    std::string url = "https://discord.com/api/v10/" + path;
 
-    nlohmann::json data = {
-        {"content", msg},
-        {"allowed_mentions", allowed_mentions}
-    };
-    std::string dataStr = data.dump();
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, ("Authorization: Bot " + token).c_str());
     headers = curl_slist_append(headers, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, dataStr.c_str());
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, method.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
 
@@ -234,7 +223,7 @@ void Wool::sendMsg(std::string msg, int64_t channelID, bool allowMention) {
     res = curl_easy_perform(curl);
     // Check for errors
     if(res != CURLE_OK) {
-        SPDLOG_ERROR("curl_easy_perform() failed: {}", curl_easy_strerror(res));
+        SPDLOG_WARN("curl_easy_perform() failed: {}", curl_easy_strerror(res));
     } else {
         SPDLOG_INFO("message sent: {}", readBuffer);
     }

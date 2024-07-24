@@ -21,7 +21,7 @@ private:
     bool inited = false;
 
     CURL *curl;
-    CURLcode res;
+    CURLcode res; // curl response
     std::string readBuffer;
 
     ws_client WSpp;
@@ -55,7 +55,12 @@ public:
 
     void connect_ws();
 
-    void sendMsg(std::string msg, int64_t channelID, bool allowMention = true);
+    /**
+     *  check the Discord developer documentation for the usage
+     *  example: 
+     *  sendHTTP("/channels/1234567890/messages", "POST", "{\"content\":\"Hello, World!\"}");
+     */ 
+    void sendHTTP(std::string path, std::string method, std::string data);
 };// class Wool
 
 #endif // WOOL_HPP
