@@ -21,10 +21,9 @@ private:
     bool inited = false;
 
     CURL *curl;
-    CURLcode res; // curl response
     std::string readBuffer;
 
-    ws_client WSpp;
+    ws_client WSppC;
 
     static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 

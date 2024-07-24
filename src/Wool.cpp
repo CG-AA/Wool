@@ -41,11 +41,11 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
                         {"op", 1},
                         {"d", int(this->LS)}
                     };
-                    this->WSpp.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
+                    this->WSppC.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
                     this->ACK = false;
                     std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
                 }
-                this->WSpp.close(hdl, websocketpp::close::status::protocol_error, "Heartbeat ACK not received");
+                this->WSppC.close(hdl, websocketpp::close::status::protocol_error, "Heartbeat ACK not received");
                 SPDLOG_WARN("Didn't receive heartbeat ACK, attempting to reconnect...");
                 this->reconnect_ws();
             });
@@ -121,7 +121,7 @@ void Wool::sendIdentify(websocketpp::connection_hdl hdl) {
         }}
     };
     SPDLOG_INFO("Sending identify message: {}", identify.dump());
-    WSpp.send(hdl, identify.dump(), websocketpp::frame::opcode::text);
+    WSppC.send(hdl, identify.dump(), websocketpp::frame::opcode::text);
 }
 
 void Wool::connect_ws(){
@@ -163,27 +163,27 @@ void Wool::connect_ws(){
     readBuffer.clear();
     curl_slist_free_all(headers);
 
-    WSpp.set_access_channels(websocketpp::log::alevel::all);
+    WSppC.set_access_channels(websocketpp::log::alevel::all);
 
-    WSpp.init_asio();
+    WSppC.init_asio();
     //tlsv12 init
-    WSpp.set_tls_init_handler([](websocketpp::connection_hdl) {
+    WSppC.set_tls_init_handler([](websocketpp::connection_hdl) {
         return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
     });
-    WSpp.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+    WSppC.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
         (this->*messageHandler)(hdl, msg);
     });
-    WSpp.set_open_handler([](websocketpp::connection_hdl hdl) {
+    WSppC.set_open_handler([](websocketpp::connection_hdl hdl) {
         SPDLOG_INFO("Connected to Discord websocket :D");
     });
     websocketpp::lib::error_code ec;    // check ec to see if there were errors
-    auto conn = WSpp.get_connection(WSS_URL, ec);
+    auto conn = WSppC.get_connection(WSS_URL, ec);
     if (ec) {
         SPDLOG_ERROR("Could not create connection because: {}", ec.message());
         return;
     }
-    WSpp.connect(conn);
-    WSpp.run();
+    WSppC.connect(conn);
+    WSppC.run();
 }//connect_ws
 
 void Wool::reconnect_ws(){
@@ -194,12 +194,12 @@ void Wool::reconnect_ws(){
         inited = false;
         messageHandler = &Wool::initMessageHandler;
         websocketpp::lib::error_code ec;    // check ec to see if there were errors
-        auto conn = WSpp.get_connection(WSS_URL, ec);
+        auto conn = WSppC.get_connection(WSS_URL, ec);
         if (ec) {
             SPDLOG_ERROR("Could not create connection because: {}", ec.message());
             return;
         }
-        WSpp.connect(conn);
+        WSppC.connect(conn);
     } catch (std::exception& e) {
         SPDLOG_ERROR("std::exception: {}", e.what());
     }
