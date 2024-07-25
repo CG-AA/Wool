@@ -16,7 +16,6 @@ Wool::Wool() {
 }
 
 Wool::~Wool() {
-    closeWebSocket();
     curl_global_cleanup();
 }
 
@@ -253,10 +252,4 @@ void Wool::run() {
 void Wool::stop() {
     stopFlag = true;
     cv.notify_all();
-}
-
-void Wool::closeWebSocket() {
-    WSppC.stop();
-    WSppC.close(websocketpp::close::status::normal, "Closing connection");
-    SPDLOG_INFO("WebSocket connection closed");
 }

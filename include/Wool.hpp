@@ -44,8 +44,6 @@ private:
     void sendIdentify(websocketpp::connection_hdl hdl);//send identify message(used in initMessageHandler)
 
     void reconnect_ws();//reconnect to the gateway
-
-    void closeWebSocket();//close the websocket connection
 public:
     
     // void setPUBKEY(std::string pubkey){
