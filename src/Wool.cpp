@@ -208,7 +208,7 @@ void Wool::reconnect_ws(){
     }
 }
 
-void Wool::sendHTTP(const std::string& path, const std::string& method, const std::string& data) {
+std::string Wool::sendHTTP(const std::string& path, const std::string& method, const std::string& data) {
     curl_easy_reset(curl);
     std::string url = "https://discord.com/api/v10" + path;
 
@@ -240,8 +240,10 @@ void Wool::sendHTTP(const std::string& path, const std::string& method, const st
             SPDLOG_INFO("message sent: {}", readBuffer);
         }
     }
+    std::string response = readBuffer;
     readBuffer.clear();
     curl_slist_free_all(headers);
+    return response;
 }
 
 void Wool::run() {

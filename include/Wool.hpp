@@ -70,7 +70,7 @@ public:
      *  example: 
      *  sendHTTP("/channels/1234567890/messages", "POST", "{\"content\":\"Hello, World!\"}");
      */ 
-    void sendHTTP(const std::string& path, const std::string& method, const std::string& data);
+    std::string sendHTTP(const std::string& path, const std::string& method, const std::string& data);
 
     void run();
     void stop();

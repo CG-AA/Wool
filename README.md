@@ -3,6 +3,10 @@
 - very fast
 - only do the basic stuff(handle heartbeat, send message that you gave it, etc)
 
+## What does Wool do?
+- gateway connection(for real-time communication, including someone send a message or someone just joined a voice channel)
+- HTTP request(Rest API, for example: send message on a channel, get user info, etc)
+
 ## Features
 
 - **Modern C++ Design**: Utilizes modern C++ standards to ensure a smooth development experience.
