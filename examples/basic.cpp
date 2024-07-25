@@ -41,7 +41,8 @@ int main() {
                 }
             }}
         };
-        wool.sendHTTP("POST", "/channels/" + std::to_string(channelID) + "/messages", eg_components.dump());
+        // SPDLOG_INFO("Sending message...");
+        // wool.sendHTTP("POST", "/channels/" + std::to_string(channelID) + "/messages", eg_components.dump());
 
         wool.run();
     } catch (std::exception& e) {

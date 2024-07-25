@@ -5,12 +5,9 @@
 
 // data received(void *contents) to string(std::string *userp)
 // used by curl
-size_t Wool::WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
-    // Cast userp back to Wool* to access instance data
-    Wool* instance = static_cast<Wool*>(userp);
-    size_t realSize = size * nmemb;
-    instance->readBuffer.append((char*)contents, realSize);
-    return realSize;
+size_t Wool::WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
 }
 
 Wool::Wool() {
@@ -153,6 +150,7 @@ void Wool::connect_ws(){
         SPDLOG_ERROR("curl_easy_perform() failed: {}", curl_easy_strerror(res));
     } else {
         try {
+            SPDLOG_INFO("Received response: {}", readBuffer);
             nlohmann::json response = nlohmann::json::parse(readBuffer);
             WSS_URL = response["url"];
             SPDLOG_INFO("gateway URL received: {}", WSS_URL);
@@ -162,26 +160,26 @@ void Wool::connect_ws(){
     }
     readBuffer.clear();
     curl_slist_free_all(headers);
-    
+
+    WSppC.init_asio();
+    //tlsv12 init
+    WSppC.set_tls_init_handler([](websocketpp::connection_hdl) {
+        return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
+    });
+    WSppC.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+        (this->*messageHandler)(hdl, msg);
+    });
+    WSppC.set_open_handler([](websocketpp::connection_hdl hdl) {
+        SPDLOG_INFO("Connected to Discord websocket :D");
+    });
+    websocketpp::lib::error_code ec;    // check ec to see if there were errors
+    auto conn = WSppC.get_connection(WSS_URL, ec);
+    if (ec) {
+        SPDLOG_ERROR("Could not create connection because: {}", ec.message());
+        return;
+    }
+    WSppC.connect(conn);
     std::thread WSppC_Thread([this](){
-        WSppC.init_asio();
-        //tlsv12 init
-        WSppC.set_tls_init_handler([](websocketpp::connection_hdl) {
-            return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
-        });
-        WSppC.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-            (this->*messageHandler)(hdl, msg);
-        });
-        WSppC.set_open_handler([](websocketpp::connection_hdl hdl) {
-            SPDLOG_INFO("Connected to Discord websocket :D");
-        });
-        websocketpp::lib::error_code ec;    // check ec to see if there were errors
-        auto conn = WSppC.get_connection(this->WSS_URL, ec);
-        if (ec) {
-            SPDLOG_ERROR("Could not create connection because: {}", ec.message());
-            return;
-        }
-        WSppC.connect(conn);
         WSppC.run();
     });
     WSppC_Thread.detach();
