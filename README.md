@@ -1,15 +1,16 @@
 # Wool - The Discord Library
 
-Wool is a modern C++ library designed to make Discord bot development easier and more intuitive. By leveraging the power of C++, Wool provides developers with a robust and efficient way to create complex and highly responsive bots for Discord.
+- very fast
+- only do the basic stuff(handle heartbeat, send message that you gave it, etc)
 
 ## Features
 
 - **Modern C++ Design**: Utilizes modern C++ standards to ensure a smooth development experience.
-- **High Performance**: Optimized for performance to handle high-load bot interactions seamlessly.
-- **Easy to Use**: Simplified API design for ease of use without sacrificing flexibility.
+- **High Performance**: Optimized for performance to handle high-load bot interactions seamlessly.(but no sharding for now)
+- **Easy to Use**: Usage of Wool is easy, handle message from Discord is another.
 
 ### todo
-- **sharding**: Support for sharding to distribute bot load across multiple instances.
+- **sharding**: Support for sharding to distribute bot load across multiple instances.(only will do if someone asks for it)
 - **rate limiting**: Automatic rate limiting to prevent bot abuse and ensure compliance with Discord's API guidelines.
 - **nonce support**: Support for nonces to prevent duplicate messages and ensure message integrity.
 
@@ -18,10 +19,11 @@ Wool is a modern C++ library designed to make Discord bot development easier and
 ### Prerequisites
 
 - CMake 3.15 or higher
-- A C++ compiler that supports at least C++20
-- curl
+- A C++ compiler that supports at least C++17
+- cURL
 - nlohmann/json
 - websocketpp
+- spdlog
 
 ### Building from Source using CMake
 

@@ -16,6 +16,7 @@ Wool::Wool() {
 }
 
 Wool::~Wool() {
+    closeWebSocket();
     curl_global_cleanup();
 }
 
