@@ -250,3 +250,12 @@ void Wool::stop() {
     stopFlag = true;
     cv.notify_all();
 }
+
+void Wool::closeWebSocket() {
+    try {
+        SPDLOG_INFO("Closing WebSocket connection...");
+        WSppC.close(WSppC.get_con_from_hdl(hdl), websocketpp::close::status::going_away, "Client disconnecting");
+    } catch (const std::exception& e) {
+        SPDLOG_ERROR("Error closing WebSocket: {}", e.what());
+    }
+}

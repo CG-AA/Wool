@@ -49,6 +49,7 @@
    cmake ..
    ```
     You can also specify the build type by adding `-DB_LIB=(ON/OFF)` or `-DB_EX=(ON/OFF)` to the `cmake` command.
+    (you needs to build the library first, then you can build the examples)
 
 4. Build the library:
     ```sh
