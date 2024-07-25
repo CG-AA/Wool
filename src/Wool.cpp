@@ -206,7 +206,7 @@ void Wool::reconnect_ws(){
 
 void Wool::sendHTTP(const std::string& path, const std::string& method, const std::string& data) {
     curl_easy_reset(curl);
-    std::string url = "https://discord.com/api/v10/" + path;
+    std::string url = "https://discord.com/api/v10" + path;
 
     struct curl_slist* headers = nullptr;
     headers = curl_slist_append(headers, ("Authorization: Bot " + token).c_str());
@@ -220,12 +220,21 @@ void Wool::sendHTTP(const std::string& path, const std::string& method, const st
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
+    SPDLOG_INFO("Sending message: {}", data);
+    SPDLOG_INFO("Sending request to: {}", url);
+
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
-        SPDLOG_WARN("message failed to send: {}", curl_easy_strerror(res));
-        SPDLOG_WARN("reason: {}", readBuffer);
+        SPDLOG_ERROR("message failed to send: {}", curl_easy_strerror(res));
+        SPDLOG_ERROR("reason: {}", readBuffer);
     } else {
-        SPDLOG_INFO("message sent: {}", readBuffer);
+        long http_code = 0;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+        if (http_code >= 400) {
+            SPDLOG_WARN("HTTP error {}: {}", http_code, readBuffer);
+        } else {
+            SPDLOG_INFO("message sent: {}", readBuffer);
+        }
     }
     readBuffer.clear();
     curl_slist_free_all(headers);

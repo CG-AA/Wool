@@ -26,23 +26,26 @@ int main() {
             SPDLOG_INFO("Received message: {}", message);
         });
         wool.connect_ws();
-        nlohmann::json eg_components = {
-            {"components", {
-                {
-                    {"type", 1},
-                    {"components", {
-                        {
-                            {"type", 2},
-                            {"style", 1},
-                            {"label", "Button"},
-                            {"custom_id", "button1"}
-                        }
-                    }}
-                }
-            }}
-        };
-        // SPDLOG_INFO("Sending message...");
-        // wool.sendHTTP("POST", "/channels/" + std::to_string(channelID) + "/messages", eg_components.dump());
+        nlohmann::json eg_components = nlohmann::json::parse(R"(
+            {
+                "content": "This is a message with components",
+                "components": [
+                    {
+                        "type": 1,
+                        "components": [
+                            {
+                                "type": 2,
+                                "style": 1,
+                                "label": "Button",
+                                "custom_id": "button1"
+                            }
+                        ]
+                    }
+                ]
+            }
+        )");
+        SPDLOG_INFO("Sending message...");
+        wool.sendHTTP("POST", "/channels/" + std::to_string(channelID) + "/messages", eg_components.dump());
 
         wool.run();
     } catch (std::exception& e) {
