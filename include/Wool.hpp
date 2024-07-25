@@ -4,10 +4,12 @@
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 #include <websocketpp/client.hpp>
+#include <websocketpp/server.hpp>
 #include <websocketpp/config/asio_client.hpp>
 #include <mutex>
 
 typedef websocketpp::client<websocketpp::config::asio_tls_client> ws_client;
+typedef websocketpp::server<websocketpp::config::asio_tls> ws_server;
 
 class Wool {
 private:
@@ -24,6 +26,7 @@ private:
     std::string readBuffer;
 
     ws_client WSppC;
+    
 
     static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
