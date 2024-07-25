@@ -173,6 +173,10 @@ void Wool::connect_ws(){
     WSppC.set_open_handler([](websocketpp::connection_hdl hdl) {
         SPDLOG_INFO("Connected to Discord websocket :D");
     });
+    WSppC.set_close_handler([this](websocketpp::connection_hdl hdl) {
+        SPDLOG_WARN("Disconnected from Discord websocket :(");
+        reconnect_ws();
+    });
     websocketpp::lib::error_code ec;    // check ec to see if there were errors
     auto conn = WSppC.get_connection(WSS_URL, ec);
     if (ec) {
@@ -252,10 +256,7 @@ void Wool::stop() {
 }
 
 void Wool::closeWebSocket() {
-    try {
-        SPDLOG_INFO("Closing WebSocket connection...");
-        WSppC.close(WSppC.get_con_from_hdl(hdl), websocketpp::close::status::going_away, "Client disconnecting");
-    } catch (const std::exception& e) {
-        SPDLOG_ERROR("Error closing WebSocket: {}", e.what());
-    }
+    WSppC.stop();
+    WSppC.close(websocketpp::close::status::normal, "Closing connection");
+    SPDLOG_INFO("WebSocket connection closed");
 }
