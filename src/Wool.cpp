@@ -143,14 +143,14 @@ void Wool::connect_ws(){
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
     CURLcode res = curl_easy_perform(curl);
     if(res != CURLE_OK) {
         SPDLOG_ERROR("curl_easy_perform() failed: {}", curl_easy_strerror(res));
     } else {
         try {
-            SPDLOG_INFO("Received response: {}", readBuffer);
+            SPDLOG_DEBUG("Received response: {}", readBuffer);
             nlohmann::json response = nlohmann::json::parse(readBuffer);
             WSS_URL = response["url"];
             SPDLOG_INFO("gateway URL received: {}", WSS_URL);
