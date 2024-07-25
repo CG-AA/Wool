@@ -29,7 +29,8 @@
 
 0. Install the required dependencies:
     ```sh
-    sudo apt-get install -y git cmake libcurl4-openssl-dev nlohmann-json3-dev libwebsocketpp-dev libspdlog-dev
+    sudo apt-get update
+    sudo apt-get install -y git g++ cmake libcurl4-openssl-dev nlohmann-json3-dev libwebsocketpp-dev libspdlog-dev libboost-all-dev libssl-dev
     ```
 
 1. Clone the repository:

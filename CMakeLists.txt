@@ -11,6 +11,7 @@ find_package(spdlog REQUIRED)
 find_package(fmt REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(WebSocketPP REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 if(B_LIB)
 
