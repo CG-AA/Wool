@@ -25,7 +25,12 @@
 - websocketpp
 - spdlog
 
-### Building from Source using CMake
+### Building from Source using CMake (Linux)
+
+0. Install the required dependencies:
+    ```sh
+    sudo apt-get install -y git cmake libcurl4-openssl-dev nlohmann-json3-dev libwebsocketpp-dev libspdlog-dev
+    ```
 
 1. Clone the repository:
     ```sh
