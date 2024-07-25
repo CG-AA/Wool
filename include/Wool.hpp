@@ -9,10 +9,13 @@
 #include <mutex>
 
 typedef websocketpp::client<websocketpp::config::asio_tls_client> ws_client;
-typedef websocketpp::server<websocketpp::config::asio_tls> ws_server;
 
 class Wool {
 private:
+    std::mutex mtx;
+    std::condition_variable cv;
+    bool stopFlag = false;
+
     // std::string PUBKEY = ""; //might not be needed
     std::string token = "";
     std::string APPID = "";
@@ -43,8 +46,8 @@ private:
     void reconnect_ws();
 public:
     
-    void setPUBKEY(std::string pubkey){
-        this->PUBKEY = pubkey;}
+    // void setPUBKEY(std::string pubkey){
+        // this->PUBKEY = pubkey;}
     void setToken(std::string token){
         this->token = token;}
     
@@ -62,7 +65,10 @@ public:
      *  example: 
      *  sendHTTP("/channels/1234567890/messages", "POST", "{\"content\":\"Hello, World!\"}");
      */ 
-    void sendHTTP(std::string path, std::string method, std::string data);
+    void sendHTTP(const std::string& path, const std::string& method, const std::string& data);
+
+    void run();
+    void stop();
 };// class Wool
 
 #endif // WOOL_HPP

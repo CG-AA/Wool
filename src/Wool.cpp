@@ -148,7 +148,7 @@ void Wool::connect_ws(){
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
 
-    res = curl_easy_perform(curl);
+    CURLcode res = curl_easy_perform(curl);
     if(res != CURLE_OK) {
         SPDLOG_ERROR("curl_easy_perform() failed: {}", curl_easy_strerror(res));
     } else {
@@ -162,28 +162,29 @@ void Wool::connect_ws(){
     }
     readBuffer.clear();
     curl_slist_free_all(headers);
-
-    WSppC.set_access_channels(websocketpp::log::alevel::all);
-
-    WSppC.init_asio();
-    //tlsv12 init
-    WSppC.set_tls_init_handler([](websocketpp::connection_hdl) {
-        return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
+    
+    std::thread WSppC_Thread([this](){
+        WSppC.init_asio();
+        //tlsv12 init
+        WSppC.set_tls_init_handler([](websocketpp::connection_hdl) {
+            return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
+        });
+        WSppC.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+            (this->*messageHandler)(hdl, msg);
+        });
+        WSppC.set_open_handler([](websocketpp::connection_hdl hdl) {
+            SPDLOG_INFO("Connected to Discord websocket :D");
+        });
+        websocketpp::lib::error_code ec;    // check ec to see if there were errors
+        auto conn = WSppC.get_connection(this->WSS_URL, ec);
+        if (ec) {
+            SPDLOG_ERROR("Could not create connection because: {}", ec.message());
+            return;
+        }
+        WSppC.connect(conn);
+        WSppC.run();
     });
-    WSppC.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-        (this->*messageHandler)(hdl, msg);
-    });
-    WSppC.set_open_handler([](websocketpp::connection_hdl hdl) {
-        SPDLOG_INFO("Connected to Discord websocket :D");
-    });
-    websocketpp::lib::error_code ec;    // check ec to see if there were errors
-    auto conn = WSppC.get_connection(WSS_URL, ec);
-    if (ec) {
-        SPDLOG_ERROR("Could not create connection because: {}", ec.message());
-        return;
-    }
-    WSppC.connect(conn);
-    WSppC.run();
+    WSppC_Thread.detach();
 }//connect_ws
 
 void Wool::reconnect_ws(){
@@ -224,10 +225,20 @@ void Wool::sendHTTP(const std::string& path, const std::string& method, const st
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         SPDLOG_WARN("message failed to send: {}", curl_easy_strerror(res));
+        SPDLOG_WARN("reason: {}", readBuffer);
     } else {
         SPDLOG_INFO("message sent: {}", readBuffer);
     }
     readBuffer.clear();
     curl_slist_free_all(headers);
 }
-    
+
+void Wool::run() {
+    std::unique_lock<std::mutex> lock(mtx);
+    cv.wait(lock, [this] { return stopFlag; });
+}
+
+void Wool::stop() {
+    stopFlag = true;
+    cv.notify_all();
+}

@@ -23,8 +23,27 @@ int main() {
         int64_t channelID = 872341868149637211;
         wool.setToken(token);
         wool.setWssMessageHandler([](std::string message){
+            SPDLOG_INFO("Received message: {}", message);
         });
         wool.connect_ws();
+        nlohmann::json eg_components = {
+            {"components", {
+                {
+                    {"type", 1},
+                    {"components", {
+                        {
+                            {"type", 2},
+                            {"style", 1},
+                            {"label", "Button"},
+                            {"custom_id", "button1"}
+                        }
+                    }}
+                }
+            }}
+        };
+        wool.sendHTTP("POST", "/channels/" + std::to_string(channelID) + "/messages", eg_components.dump());
+
+        wool.run();
     } catch (std::exception& e) {
         SPDLOG_ERROR("std::exception: {}", e.what());
     }
