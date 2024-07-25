@@ -12,12 +12,12 @@ typedef websocketpp::client<websocketpp::config::asio_tls_client> ws_client;
 
 class Wool {
 private:
-    std::mutex mtx;
-    std::condition_variable cv;
-    bool stopFlag = false;
+    std::mutex mtx;//block the main thread
+    std::condition_variable cv;//unlocks the main thread(stop)
+    bool stopFlag = false;//stop the main thread
 
     // std::string PUBKEY = ""; //might not be needed
-    std::string token = "";
+    std::string token = "";// bot token(found in the Discord developer portal)
     std::string APPID = "";
     std::string WSS_URL;
     int heartbeat_interval;
