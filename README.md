@@ -16,6 +16,9 @@
 
 ## Getting Started
 
+### FAQ
+if you have any question(literally anything), just open a issue.
+
 ### Prerequisites
 
 - CMake 3.15 or higher
@@ -58,16 +61,17 @@
 
 5. Install the library:
     ```sh
-    make install
+    sudo make install
     ```
 
 ## Examples
 
-You can find examples on how to use Wool in the `examples/` directory. These examples cover a range of use cases and demonstrate the library's capabilities.
+You can find example on how to use Wool in the `examples/` directory. and yes, it only have one example for now.
 
 ## Contributing
 
-Contributions are welcome! Please read the `CONTRIBUTING.md` file for more information on how to contribute to Wool.
+Please do it, I'm not good at C++.
+just open a issue or a pull request.
 
 ## License
 
