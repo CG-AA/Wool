@@ -67,8 +67,8 @@ public:
 
     void connect_ws();//connect to the gateway
 
-    void Wool::sendWss(const std::string& message);//send a message to the gateway
-    void Wool::sendWss(const std::string& message, websocketpp::frame::opcode::value opcode);//send a message to the gateway with a specific opcode
+    void sendWss(const std::string& message);//send a text format message to the gateway
+    void sendWss(const std::string& message, websocketpp::frame::opcode::value opcode);//send a message to the gateway with a specific gateway opcode
 
     /**
      *  check the Discord developer documentation for the usage

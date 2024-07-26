@@ -256,7 +256,7 @@ std::string Wool::sendHTTP(const std::string& path, const std::string& method, c
 
 void Wool::run() {
     std::unique_lock<std::mutex> lock(mtx);
-    cv.wait(lock, [this] { return stopFlag; });
+    cv.wait(lock, [this] { return stopFlag.load(); });
 }
 
 void Wool::stop() {
