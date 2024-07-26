@@ -44,6 +44,9 @@ private:
     // user-defined message handlers (string)
     std::function<void(std::string)> onWssMessage;
 
+    // Voice State/Server update handlers
+    std::function<void(std::string)> onVoiceUpdate;
+
     void sendIdentify(websocketpp::connection_hdl hdl);//send identify message(used in initMessageHandler)
 
     void reconnect_ws();//reconnect to the gateway
