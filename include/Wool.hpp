@@ -46,6 +46,9 @@ private:
     void sendIdentify(websocketpp::connection_hdl hdl);//send identify message(used in initMessageHandler)
 
     void reconnect_ws();//reconnect to the gateway
+    
+    std::function<void(const std::vector<uint8_t>&)> onVoiceInput;
+    std::function<std::vector<uint8_t>()> onVoiceOutput;
 public:
     
     // void setPUBKEY(std::string pubkey){
@@ -77,7 +80,7 @@ public:
      */ 
     std::string sendHTTP(const std::string& path, const std::string& method, const std::string& data);
 
-        void setVoiceInputHandler(const std::function<void(const std::vector<uint8_t>&)>& handler);
+    void setVoiceInputHandler(const std::function<void(const std::vector<uint8_t>&)>& handler);
     void setVoiceOutputHandler(const std::function<std::vector<uint8_t>()>& handler);
 
     void run();
