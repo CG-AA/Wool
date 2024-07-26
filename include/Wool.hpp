@@ -77,6 +77,9 @@ public:
      */ 
     std::string sendHTTP(const std::string& path, const std::string& method, const std::string& data);
 
+        void setVoiceInputHandler(const std::function<void(const std::vector<uint8_t>&)>& handler);
+    void setVoiceOutputHandler(const std::function<std::vector<uint8_t>()>& handler);
+
     void run();
     void stop();
 };// class Wool
