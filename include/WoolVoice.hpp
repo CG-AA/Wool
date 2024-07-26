@@ -9,7 +9,7 @@ namespace Wool {
 
 class Voice {
 public:
-	Voice(const std::string& endpoint, const std::string& token, const std::string& guild_id, const std::string& channel_id);
+	Voice(const std::string& guild_id, const std::string& channel_id);
 	void connect();
 	void disconnect();
     void setVoiceInputHandler(const std::function<void(const std::vector<uint8_t>&)>& handler){
