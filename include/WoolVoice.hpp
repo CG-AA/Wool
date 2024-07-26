@@ -25,6 +25,11 @@ private:
 	std::string channel_id;
 	std::function<void(const std::vector<uint8_t>&)> voiceInputHandler;
 	std::function<std::vector<uint8_t>()> voiceOutputHandler;
+
+    void parseVoiceServerUpdate(const std::string& data);
+    std::atomic<bool> VCSeUreceived{false};
+    void parseVoiceStateUpdate(const std::string& data);
+    std::atomic<bool> VCStUreceived{false};
 };
 
 } // namespace Wool

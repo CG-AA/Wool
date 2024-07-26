@@ -95,6 +95,9 @@ void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::mes
                 }
             }
         }
+        if(onVoiceUpdate){
+            onVoiceUpdate(payload);
+        }
         // give message to user-defined handler
         onWssMessage(payload);
     } catch (nlohmann::json::parse_error& e) {
