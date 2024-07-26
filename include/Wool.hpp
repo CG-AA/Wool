@@ -29,6 +29,7 @@ private:
     std::string readBuffer;//for HTTP requests
 
     ws_client WSppC;//websocketpp client
+    we_client WSppVC;//websocketpp client for voice
     
 
     static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);//used by curl
