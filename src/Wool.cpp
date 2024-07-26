@@ -23,6 +23,7 @@ Wool::~Wool() {
  * create heartbeat thread and switch to general message handler
  */
 void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+    this->hdl = hdl;
     try{
         nlohmann::json message = nlohmann::json::parse(msg->get_payload());
         SPDLOG_DEBUG("Received message: {}", message.dump());
@@ -206,6 +207,13 @@ void Wool::reconnect_ws(){
     } catch (std::exception& e) {
         SPDLOG_ERROR("std::exception: {}", e.what());
     }
+}
+
+void Wool::sendWss(const std::string& message) {
+    WSppC.send(this->hdl, message, websocketpp::frame::opcode::text);
+}
+void Wool::sendWss(const std::string& message, websocketpp::frame::opcode::value opcode) {
+    WSppC.send(this->hdl, message, opcode);
 }
 
 std::string Wool::sendHTTP(const std::string& path, const std::string& method, const std::string& data) {

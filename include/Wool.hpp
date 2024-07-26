@@ -14,7 +14,7 @@ class Wool {
 private:
     std::mutex mtx;//block the main thread
     std::condition_variable cv;//unlocks the main thread(stop)
-    bool stopFlag = false;//stop the main thread
+    std::atomic<bool> stopFlag{false};//stop the main thread
 
     // std::string PUBKEY = ""; //might not be needed
     std::string token = "";// bot token(found in the Discord developer portal)
@@ -23,14 +23,15 @@ private:
     int heartbeat_interval;//heartbeat interval (ms)
     std::atomic<int> LS{0};//last sequence (s in message)
     std::atomic<bool> ACK{false};//heartbeat ACK
-    bool inited = false;//set to true after HELLO message
+    std::atomic<bool> inited{false};//set to true after HELLO message
+    std::atomic<bool> ready{false};//set to true after READY message
 
     CURL *curl;//for HTTP requests
     std::string readBuffer;//for HTTP requests
 
     ws_client WSppC;//websocketpp client
-    we_client WSppVC;//websocketpp client for voice
     
+    websocketpp::connection_hdl hdl;//websocketpp connection handle
 
     static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);//used by curl
 
@@ -65,6 +66,9 @@ public:
     ~Wool(); // Destructor(includes cleanup)
 
     void connect_ws();//connect to the gateway
+
+    void Wool::sendWss(const std::string& message);//send a message to the gateway
+    void Wool::sendWss(const std::string& message, websocketpp::frame::opcode::value opcode);//send a message to the gateway with a specific opcode
 
     /**
      *  check the Discord developer documentation for the usage
