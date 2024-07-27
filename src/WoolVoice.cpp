@@ -46,7 +46,8 @@ namespace Wool {
                 SPDLOG_ERROR("Out of range: {}", e.what());
             }
         };
-        Wool::sendWss()
+        WoolINS.sendWsMessage("{\"op\":4,\"d\":{\"guild_id\":\"" + guild_id + "\",\"channel_id\":\"" + channel_id + "\",\"self_mute\":false,\"self_deaf\":false}}");
+        
     }
         
         

@@ -5,6 +5,7 @@
 #include <vector>
 #include <functional>
 #include <spdlog/spdlog.h>
+#include <mutex>
 #include"Wool.hpp"
 
 namespace Wool {
@@ -20,6 +21,7 @@ public:
         onVoiceOutput = handler;    }
 
 private:
+    std::mutex mtx;
     Wool::Wool WoolINS;
     bool deaf;
     bool mute;
