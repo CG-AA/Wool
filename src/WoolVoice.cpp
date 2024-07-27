@@ -1,3 +1,4 @@
+#include <nlohmann/json.hpp>
 #include"../include/WoolVoice.hpp"
 
 namespace {
@@ -54,7 +55,18 @@ namespace Wool {
         std::unique_lock<std::mutex> lock(mtx);
         cv.wait(lock, [this] { return VCSeUreceived && VCStUreceived; });
         WoolINS->onVoiceUpdate = [this](std::string data) {
-            
+            nlohmann::json j = nlohmann::json::parse(data);
+            if (j["op"] == 2){
+                ssrc = j["d"]["ssrc"];
+                ip = j["d"]["ip"];
+                port = j["d"]["port"];
+                if(j["d"]["mode"].contains("xsalsa20_poly1305")){
+                    SPDLOG_INFO("Encryption mode: xsalsa20_poly1305");
+                }else{
+                    SPDLOG_ERROR("Unsupported encryption mode");
+                    return;
+                }
+            }
         };
         //Voice Identify Payload
         WoolINS->sendWss("{\"op\":0,\"d\":{\"server_id\":\"" + guild_id + "\",\"user_id\":\"" + user_id + "\",\"session_id\":\"" + session_id + "\",\"token\":\"" + token + "\"}}");

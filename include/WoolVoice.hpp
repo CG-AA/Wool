@@ -34,6 +34,9 @@ private:
 	std::string channel_id;
     std::string user_id;
     std::string session_id;
+    int ssrc;
+    std::string ip;
+    int port;
 	std::function<void(const std::vector<uint8_t>&)> onVoiceInput;
 	std::function<std::vector<uint8_t>()> onVoiceOutput;
 
