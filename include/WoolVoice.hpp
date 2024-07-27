@@ -5,6 +5,8 @@
 #include <vector>
 #include <functional>
 #include <spdlog/spdlog.h>
+#include <condition_variable>
+#include <atomic>
 #include <mutex>
 #include"Wool.hpp"
 
@@ -22,6 +24,7 @@ public:
 
 private:
     std::mutex mtx;
+    std::condition_variable cv;
     Wool::Wool WoolINS;
     bool deaf;
     bool mute;
