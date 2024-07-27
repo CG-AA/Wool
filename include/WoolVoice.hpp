@@ -8,7 +8,11 @@
 #include <condition_variable>
 #include <atomic>
 #include <mutex>
+#include <websocketpp/client.hpp>
+#include <websocketpp/config/asio_client.hpp>
 #include"Wool.hpp"
+
+typedef websocketpp::client<websocketpp::config::asio_tls_client> ws_client;
 
 namespace Wool {
 
@@ -25,7 +29,8 @@ public:
 private:
     std::mutex mtx;
     std::condition_variable cv;
-    Wool* WoolINS;
+    std::unique_ptr<Wool> WoolINS;
+
     bool deaf;
     bool mute;
 	std::string endpoint;
