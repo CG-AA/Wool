@@ -21,8 +21,9 @@ namespace Wool {
     }
 
     void Voice::parseVoiceServerUpdate(const std::string& data) {
-        
-        // Set VCSeUreceived to true
+        token = getComponentString(data, "token");
+        endpoint = getComponentString(data, "endpoint");
+        VCSeUreceived = true;
     }
     void Voice::parseVoiceStateUpdate(const std::string& data) {
         // Parse the data and set the token
