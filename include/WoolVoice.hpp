@@ -11,7 +11,7 @@ namespace Wool {
 
 class Voice {
 public:
-	Voice(const std::string& guild_id, const std::string& channel_id);
+	Voice(const Wool::Wool& WoolINS , const std::string& guild_id, const std::string& channel_id, const bool deaf, const bool mute);
 	void connect();
 	void disconnect();
     void setVoiceInputHandler(const std::function<void(const std::vector<uint8_t>&)>& handler){
@@ -20,10 +20,16 @@ public:
         onVoiceOutput = handler;    }
 
 private:
+    Wool::Wool WoolINS;
+    bool deaf;
+    bool mute;
 	std::string endpoint;
 	std::string token;
 	std::string guild_id;
 	std::string channel_id;
+    std::string session_id;
+    std::string user_id;
+    std::string session_id;
 	std::function<void(const std::vector<uint8_t>&)> voiceInputHandler;
 	std::function<std::vector<uint8_t>()> voiceOutputHandler;
 

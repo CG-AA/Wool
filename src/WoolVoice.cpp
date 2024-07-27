@@ -1,7 +1,7 @@
 #include"../include/WoolVoice.hpp"
 
 namespace {
-    std::string getComponentString(const std::string& data, const std::string& key) {
+    std::string getComponentString(std::string& data, const std::string& key) {
         size_t startPos = data.find(key+"\":\"");
         if (startPos != std::string::npos) {
             startPos += 4; // Move past the key and the colon
@@ -15,8 +15,8 @@ namespace {
 }
 
 namespace Wool {
-    Voice::Voice(const std::string& guild_id, const std::string& channel_id){
-        : guild_id(guild_id), channel_id(channel_id) {
+    Voice::Voice(const Wool::Wool& WoolINS , const std::string& guild_id, const std::string& channel_id, const bool deaf, const bool mute){
+        : guild_id(guild_id), channel_id(channel_id), deaf(deaf), mute(mute), WoolINS(WoolINS) {
         }
     }
 
@@ -26,8 +26,9 @@ namespace Wool {
         VCSeUreceived = true;
     }
     void Voice::parseVoiceStateUpdate(const std::string& data) {
-        // Parse the data and set the token
-        // Set VCStUreceived to true
+        session_id = getComponentString(data, "session_id");
+        user_id = getComponentString(data, "user_id");
+        VCStUreceived = true;
     }
 
     void Voice::connect() {
@@ -45,6 +46,7 @@ namespace Wool {
                 SPDLOG_ERROR("Out of range: {}", e.what());
             }
         };
+        Wool::sendWss()
     }
         
         
