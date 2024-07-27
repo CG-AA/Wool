@@ -49,11 +49,16 @@ namespace Wool {
                 SPDLOG_ERROR("Out of range: {}", e.what());
             }
         };
+        //Gateway Voice State Update
         WoolINS->sendWss("{\"op\":4,\"d\":{\"guild_id\":\"" + guild_id + "\",\"channel_id\":\"" + channel_id + "\",\"self_mute\":false,\"self_deaf\":false}}");
         std::unique_lock<std::mutex> lock(mtx);
         cv.wait(lock, [this] { return VCSeUreceived && VCStUreceived; });
+        WoolINS->onVoiceUpdate = [this](std::string data) {
+            
+        };
+        //Voice Identify Payload
         WoolINS->sendWss("{\"op\":0,\"d\":{\"server_id\":\"" + guild_id + "\",\"user_id\":\"" + user_id + "\",\"session_id\":\"" + session_id + "\",\"token\":\"" + token + "\"}}");
-        
+
 
     }
         
