@@ -3,6 +3,8 @@
 #include <chrono>
 #include <thread>
 
+namespace Wool{
+
 // data received(void *contents) to string(std::string *userp)
 // used by curl
 size_t Wool::WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
@@ -266,3 +268,5 @@ void Wool::stop() {
     stopFlag = true;
     cv.notify_all();
 }
+    
+}//namespace Wool

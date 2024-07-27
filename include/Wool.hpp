@@ -10,6 +10,7 @@
 
 typedef websocketpp::client<websocketpp::config::asio_tls_client> ws_client;
 
+namespace Wool{
 class Wool {
 friend class Voice;
 private:
@@ -89,5 +90,6 @@ public:
     void run();
     void stop();
 };// class Wool
+}// namespace WoolLib
 
 #endif // WOOL_HPP
