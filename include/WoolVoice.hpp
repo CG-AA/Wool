@@ -56,9 +56,9 @@ private:
 
     void connectVoiceWS();
 
-    void initVoiceWSmsgHandler(std::string msg);
-    void generalVoiceWSmsgHandler(std::string msg);
-    std::function<void(std::string)> onVWSmsg = initVoiceWSmsgHandler;
+    void initVoiceWSmsgHandler(websocketpp::connection_hdl hdl, std::string msg);
+    void generalVoiceWSmsgHandler(websocketpp::connection_hdl hdl, std::string msg);
+    std::function<void(websocketpp::connection_hdl hdl, std::string)> onVWSmsg = initVoiceWSmsgHandler;
 
 };
 

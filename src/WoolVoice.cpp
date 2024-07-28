@@ -67,7 +67,7 @@ namespace Wool {
             voiceWS.send(hdl, "{\"op\":0,\"d\":{\"server_id\":\"" + guild_id + "\",\"user_id\":\"" + user_id + "\",\"session_id\":\"" + session_id + "\",\"token\":\"" + token + "\"}}" );
         });
         voiceWS.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-            
+            onVWSmsg(hdl, msg);
         });
         websocketpp::lib::error_code ec;
         ws_client::connection_ptr con = voiceWS.get_connection("wss://" + endpoint, ec);
@@ -79,7 +79,7 @@ namespace Wool {
         voiceWS.run();
     }
 
-    void Voice::initVoiceWSmsgHandler(std::string msg) {
+    void Voice::initVoiceWSmsgHandler(websocketpp::connection_hdl hdl, std::string msg) {
         nlohmann::json j = nlohmann::json::parse(msg);
         if (j["op"] == 2){
             ssrc = j["d"]["ssrc"];
@@ -101,7 +101,26 @@ namespace Wool {
         }
     }
 
-    void Voice::generalVoiceWSmsgHandler(std::string msg) {
+    void Voice::generalVoiceWSmsgHandler(websocketpp::connection_hdl hdl, std::string message) {
+        heartbeat_interval = int(message["d"]["heartbeat_interval"]) * 0.9;
+        SPDLOG_INFO("Heartbeat interval: {}", heartbeat_interval);
+        ACK = true;
+        std::thread heartbeatThread([this, hdl](){
+            std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval) * (std::rand()%100) / 100);
+            while (ACK) {
+                nlohmann::json heartbeat = {
+                    {"op", 1},
+                    {"d", int(LS)}
+                };
+                voiceWS.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
+                ACK = false;
+                std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
+            }
+            this->voiceWS.close(hdl, websocketpp::close::status::protocol_error, "Heartbeat ACK not received");
+            SPDLOG_WARN("Didn't receive heartbeat ACK, attempting to reconnect...");
+            this->reconnect_ws();
+        });
+        heartbeatThread.detach();
     }
     
 }// namespace Wool
