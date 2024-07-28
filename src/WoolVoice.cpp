@@ -38,6 +38,8 @@ namespace Wool {
     }
 
     void Voice::connect() {
+        std::unique_lock<std::mutex> lock(mtx);
+        WoolINS->WSready_cv.wait(lock, [this] { return WoolINS->ready.load(); });
         WoolINS->onVoiceUpdate = [this](std::string data) {
             std::string tVal = getComponentString(data, "t");
             try {
@@ -55,7 +57,6 @@ namespace Wool {
         };
         //Gateway Voice State Update
         WoolINS->sendWss("{\"op\":4,\"d\":{\"guild_id\":\"" + guild_id + "\",\"channel_id\":\"" + channel_id + "\",\"self_mute\":false,\"self_deaf\":false}}");
-        std::unique_lock<std::mutex> lock(mtx);
         cv.wait(lock, [this] { return VCSeUreceived && VCStUreceived; });
         connectVoiceWS();
     }
@@ -78,7 +79,10 @@ namespace Wool {
             return;
         }
         voiceWS.connect(con);
-        voiceWS.run();
+        std::thread voiceWS_thread([this](){
+            voiceWS.run();
+        });
+        voiceWS_thread.detach();
     }
 
     void Voice::initVoiceWSmsgHandler(websocketpp::connection_hdl hdl, std::string msg) {

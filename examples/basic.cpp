@@ -16,7 +16,7 @@ nlohmann::json getConfig(){
 
 
 int main() {
-    Wool wool;
+    Wool::Wool wool;
     try{
         nlohmann::json config = getConfig();
         std::string token = config["token"];

@@ -14,7 +14,7 @@ class Wool {
 friend class Voice;
 private:
     std::mutex mtx;//block the main thread
-    std::condition_variable cv;//unlocks the main thread(stop)
+    std::condition_variable stop_cv;//unlocks the main thread(stop)
     std::atomic<bool> stopFlag{false};//stop the main thread
 
     // std::string PUBKEY = ""; //might not be needed
@@ -54,6 +54,7 @@ private:
     std::function<void(const std::vector<uint8_t>&)> onVoiceInput;
     std::function<std::vector<uint8_t>()> onVoiceOutput;
 public:
+    std::condition_variable WSready_cv;// notifies when the ws is ready
     
     // void setPUBKEY(std::string pubkey){
         // this->PUBKEY = pubkey;}

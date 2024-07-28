@@ -26,8 +26,10 @@ int main() {
         wool.setWssMessageHandler([](std::string message){
             SPDLOG_INFO("Received message: {}", message);
         });
+        SPDLOG_INFO("Connecting to the gateway...");
         wool.connect_ws();
-        Wool::Voice voice(&wool, "872341868149637211", "1128985878467989574", false, false);
+        Wool::Voice voice(&wool, "745136869154750473", "1128985878467989574", false, false);
+        voice.connect();
         wool.run();
     } catch (std::exception& e) {
         SPDLOG_ERROR("std::exception: {}", e.what());

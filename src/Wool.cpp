@@ -30,6 +30,9 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
         nlohmann::json message = nlohmann::json::parse(msg->get_payload());
         SPDLOG_DEBUG("Received message: {}", message.dump());
         if(!inited){    //handle HELLO message
+            if(message["op"].get<int>() != 10) {
+                return;
+            }
             inited = true;
             heartbeat_interval = int(message["d"]["heartbeat_interval"]) * 0.9;
             SPDLOG_INFO("Heartbeat interval: {}", heartbeat_interval);
@@ -53,10 +56,12 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
             if(message["t"].get<std::string>() != "READY") {
                 return;
             }
+            messageHandler = &Wool::generalMessageHandler;
             APPID = message["d"]["application"]["id"];
             SPDLOG_INFO("Application ID: {}", APPID);
             SPDLOG_INFO("Switching to general message handler");
-            messageHandler = &Wool::generalMessageHandler;
+            ready = true;
+            WSready_cv.notify_all();
         }
     } catch (nlohmann::json::parse_error& e) {
         SPDLOG_ERROR("JSON parsing failed: {}", e.what());
@@ -258,12 +263,12 @@ std::string Wool::sendHTTP(const std::string& path, const std::string& method, c
 
 void Wool::run() {
     std::unique_lock<std::mutex> lock(mtx);
-    cv.wait(lock, [this] { return stopFlag.load(); });
+    stop_cv.wait(lock, [this] { return stopFlag.load(); });
 }
 
 void Wool::stop() {
     stopFlag = true;
-    cv.notify_all();
+    stop_cv.notify_all();
 }
     
 }//namespace Wool
