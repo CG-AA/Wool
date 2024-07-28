@@ -19,6 +19,9 @@ namespace {
 namespace Wool {
     Voice::Voice(Wool* WoolINS , const std::string& guild_id, const std::string& channel_id, const bool deaf, const bool mute)
         : guild_id(guild_id), channel_id(channel_id), deaf(deaf), mute(mute), WoolINS(WoolINS) {
+            onVWSmsg = [this](websocketpp::connection_hdl hdl, std::string msg) {
+                initVoiceWSmsgHandler(hdl, msg);
+            };
     }
 
     void Voice::parseVoiceServerUpdate(std::string& data) {
@@ -64,13 +67,13 @@ namespace Wool {
             return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
         });
         voiceWS.set_open_handler([this](websocketpp::connection_hdl hdl) {
-            voiceWS.send(hdl, "{\"op\":0,\"d\":{\"server_id\":\"" + guild_id + "\",\"user_id\":\"" + user_id + "\",\"session_id\":\"" + session_id + "\",\"token\":\"" + token + "\"}}" );
+            voiceWS.send(hdl, "{\"op\":0,\"d\":{\"server_id\":\"" + guild_id + "\",\"user_id\":\"" + user_id + "\",\"session_id\":\"" + session_id + "\",\"token\":\"" + token + "\"}}", websocketpp::frame::opcode::text);
         });
         voiceWS.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-            onVWSmsg(hdl, msg);
+            onVWSmsg(hdl, msg->get_payload());
         });
         websocketpp::lib::error_code ec;
-        ws_client::connection_ptr con = voiceWS.get_connection("wss://" + endpoint, ec);
+        ws_client::connection_ptr con = voiceWS.get_connection("wss://" + endpoint + "?v=4", ec);
         if (ec) {
             SPDLOG_ERROR("Could not create connection: {}", ec.message());
             return;
@@ -85,11 +88,11 @@ namespace Wool {
             ssrc = j["d"]["ssrc"];
             ip = j["d"]["ip"];
             port = j["d"]["port"];
-            if(j["d"]["mode"].contains("xsalsa20_poly1305")){
-                SPDLOG_INFO("Encryption mode: xsalsa20_poly1305");
+            if(j["d"]["mode"].contains(encryptionMode)){
+                SPDLOG_INFO("Encryption mode: {}", encryptionMode);
                 ready = true;
             }else{
-                SPDLOG_ERROR("Unsupported encryption mode");
+                SPDLOG_ERROR("Unsupported encryption mode: {}", encryptionMode);
                 return;
             }
         }else if (j["op"] == 8){
@@ -97,30 +100,37 @@ namespace Wool {
             hello = true;
         }
         if (ready && hello){
-            onVWSmsg = generalVoiceWSmsgHandler;
+            onVWSmsg = [this](websocketpp::connection_hdl hdl, std::string msg) {
+                generalVoiceWSmsgHandler(hdl, msg);
+            };
+            ACK = true;
+            nonce = std::chrono::system_clock::now();
+            std::thread heartbeatThread([this, hdl](){
+                while (ACK) {
+                    const std::string heartbeat = R"({"op":3,"d":)" + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - nonce).count()) + "}";
+                    voiceWS.send(hdl, heartbeat, websocketpp::frame::opcode::text);
+                    ACK = false;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
+                }
+                this->voiceWS.close(hdl, websocketpp::close::status::protocol_error, "Heartbeat ACK not received");
+                SPDLOG_WARN("Didn't receive heartbeat ACK, attempting to reconnect...");
+                this->reconnectVoiceWS();
+            });
+            heartbeatThread.detach();
         }
     }
 
+    void Voice::reconnectVoiceWS() {
+        voiceWS.stop();
+        connectVoiceWS();
+    }
+
     void Voice::generalVoiceWSmsgHandler(websocketpp::connection_hdl hdl, std::string message) {
-        heartbeat_interval = int(message["d"]["heartbeat_interval"]) * 0.9;
-        SPDLOG_INFO("Heartbeat interval: {}", heartbeat_interval);
-        ACK = true;
-        std::thread heartbeatThread([this, hdl](){
-            std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval) * (std::rand()%100) / 100);
-            while (ACK) {
-                nlohmann::json heartbeat = {
-                    {"op", 1},
-                    {"d", int(LS)}
-                };
-                voiceWS.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
-                ACK = false;
-                std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
-            }
-            this->voiceWS.close(hdl, websocketpp::close::status::protocol_error, "Heartbeat ACK not received");
-            SPDLOG_WARN("Didn't receive heartbeat ACK, attempting to reconnect...");
-            this->reconnect_ws();
-        });
-        heartbeatThread.detach();
+        if (message.find(R"("op":6))") != std::string::npos) {
+            ACK = true;
+            SPDLOG_DEBUG("Heartbeat ACK received");
+            return;
+        }
     }
     
 }// namespace Wool

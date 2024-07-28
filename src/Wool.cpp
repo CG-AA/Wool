@@ -37,11 +37,8 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
             std::thread heartbeatThread([this, hdl](){
                 std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval) * (std::rand()%100) / 100);
                 while (this->ACK) {
-                    nlohmann::json heartbeat = {
-                        {"op", 1},
-                        {"d", int(this->LS)}
-                    };
-                    this->WS.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
+                    std::string heartbeat = "{\"op\":1,\"d\":" + std::to_string(this->LS) + "}";
+                    this->WS.send(hdl, heartbeat, websocketpp::frame::opcode::text);
                     this->ACK = false;
                     std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
                 }

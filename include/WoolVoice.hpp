@@ -42,12 +42,14 @@ private:
     int ssrc;
     std::string ip;
     int port;
+    std::string encryptionMode = "xsalsa20_poly1305";
     int heartbeat_interval;
 	std::function<void(const std::vector<uint8_t>&)> onVoiceInput;
 	std::function<std::vector<uint8_t>()> onVoiceOutput;
-    std::atomic<bool> ACK{false};//heartbeat ACK
-    std::atomic<bool> hello{false};//set to true after HELLO message
-    std::atomic<bool> ready{false};//set to true after READY message
+    std::atomic<bool> ACK{false};
+    std::atomic<bool> hello{false};
+    std::atomic<bool> ready{false};
+    std::chrono::_V2::system_clock::time_point nonce;
 
     void parseVoiceServerUpdate(std::string& data);
     std::atomic<bool> VCSeUreceived{false};
@@ -55,10 +57,11 @@ private:
     std::atomic<bool> VCStUreceived{false};
 
     void connectVoiceWS();
+    void reconnectVoiceWS();
 
     void initVoiceWSmsgHandler(websocketpp::connection_hdl hdl, std::string msg);
     void generalVoiceWSmsgHandler(websocketpp::connection_hdl hdl, std::string msg);
-    std::function<void(websocketpp::connection_hdl hdl, std::string)> onVWSmsg = initVoiceWSmsgHandler;
+    std::function<void(websocketpp::connection_hdl, std::string)> onVWSmsg;
 
 };
 
