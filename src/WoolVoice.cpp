@@ -57,8 +57,7 @@ namespace Wool {
         WoolINS->sendWss("{\"op\":4,\"d\":{\"guild_id\":\"" + guild_id + "\",\"channel_id\":\"" + channel_id + "\",\"self_mute\":false,\"self_deaf\":false}}");
         std::unique_lock<std::mutex> lock(mtx);
         cv.wait(lock, [this] { return VCSeUreceived && VCStUreceived; });
-
-
+        connectVoiceWS();
     }
         
     void Voice::connectVoiceWS() {
