@@ -45,6 +45,9 @@ private:
     int heartbeat_interval;
 	std::function<void(const std::vector<uint8_t>&)> onVoiceInput;
 	std::function<std::vector<uint8_t>()> onVoiceOutput;
+    std::atomic<bool> ACK{false};//heartbeat ACK
+    std::atomic<bool> hello{false};//set to true after HELLO message
+    std::atomic<bool> ready{false};//set to true after READY message
 
     void parseVoiceServerUpdate(std::string& data);
     std::atomic<bool> VCSeUreceived{false};

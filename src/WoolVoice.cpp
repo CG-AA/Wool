@@ -87,12 +87,17 @@ namespace Wool {
             port = j["d"]["port"];
             if(j["d"]["mode"].contains("xsalsa20_poly1305")){
                 SPDLOG_INFO("Encryption mode: xsalsa20_poly1305");
+                ready = true;
             }else{
                 SPDLOG_ERROR("Unsupported encryption mode");
                 return;
             }
         }else if (j["op"] == 8){
             heartbeat_interval = j["d"]["heartbeat_interval"];
+            hello = true;
+        }
+        if (ready && hello){
+            onVWSmsg = generalVoiceWSmsgHandler;
         }
     }
 
