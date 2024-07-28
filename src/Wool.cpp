@@ -41,11 +41,11 @@ void Wool::initMessageHandler(websocketpp::connection_hdl hdl, ws_client::messag
                         {"op", 1},
                         {"d", int(this->LS)}
                     };
-                    this->WSppC.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
+                    this->WS.send(hdl, heartbeat.dump(), websocketpp::frame::opcode::text);
                     this->ACK = false;
                     std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
                 }
-                this->WSppC.close(hdl, websocketpp::close::status::protocol_error, "Heartbeat ACK not received");
+                this->WS.close(hdl, websocketpp::close::status::protocol_error, "Heartbeat ACK not received");
                 SPDLOG_WARN("Didn't receive heartbeat ACK, attempting to reconnect...");
                 this->reconnect_ws();
             });
@@ -124,7 +124,7 @@ void Wool::sendIdentify(websocketpp::connection_hdl hdl) {
         }}
     };
     SPDLOG_INFO("Sending identify message: {}", identify.dump());
-    WSppC.send(hdl, identify.dump(), websocketpp::frame::opcode::text);
+    WS.send(hdl, identify.dump(), websocketpp::frame::opcode::text);
 }
 
 void Wool::connect_ws(){
@@ -167,30 +167,30 @@ void Wool::connect_ws(){
     readBuffer.clear();
     curl_slist_free_all(headers);
 
-    WSppC.init_asio();
+    WS.init_asio();
     //tlsv12 init
-    WSppC.set_tls_init_handler([](websocketpp::connection_hdl) {
+    WS.set_tls_init_handler([](websocketpp::connection_hdl) {
         return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
     });
-    WSppC.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+    WS.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
         (this->*messageHandler)(hdl, msg);
     });
-    WSppC.set_open_handler([](websocketpp::connection_hdl hdl) {
+    WS.set_open_handler([](websocketpp::connection_hdl hdl) {
         SPDLOG_INFO("Connected to Discord websocket :D");
     });
-    WSppC.set_close_handler([this](websocketpp::connection_hdl hdl) {
+    WS.set_close_handler([this](websocketpp::connection_hdl hdl) {
         SPDLOG_WARN("Disconnected from Discord websocket :(");
         reconnect_ws();
     });
     websocketpp::lib::error_code ec;    // check ec to see if there were errors
-    auto conn = WSppC.get_connection(WSS_URL, ec);
+    auto conn = WS.get_connection(WSS_URL, ec);
     if (ec) {
         SPDLOG_ERROR("Could not create connection because: {}", ec.message());
         return;
     }
-    WSppC.connect(conn);
+    WS.connect(conn);
     std::thread WSppC_Thread([this](){
-        WSppC.run();
+        WS.run();
     });
     WSppC_Thread.detach();
 }//connect_ws
@@ -203,22 +203,22 @@ void Wool::reconnect_ws(){
         inited = false;
         messageHandler = &Wool::initMessageHandler;
         websocketpp::lib::error_code ec;    // check ec to see if there were errors
-        auto conn = WSppC.get_connection(WSS_URL, ec);
+        auto conn = WS.get_connection(WSS_URL, ec);
         if (ec) {
             SPDLOG_ERROR("Could not create connection because: {}", ec.message());
             return;
         }
-        WSppC.connect(conn);
+        WS.connect(conn);
     } catch (std::exception& e) {
         SPDLOG_ERROR("std::exception: {}", e.what());
     }
 }
 
 void Wool::sendWss(const std::string& message) {
-    WSppC.send(this->hdl, message, websocketpp::frame::opcode::text);
+    WS.send(this->hdl, message, websocketpp::frame::opcode::text);
 }
 void Wool::sendWss(const std::string& message, websocketpp::frame::opcode::value opcode) {
-    WSppC.send(this->hdl, message, opcode);
+    WS.send(this->hdl, message, opcode);
 }
 
 std::string Wool::sendHTTP(const std::string& path, const std::string& method, const std::string& data) {

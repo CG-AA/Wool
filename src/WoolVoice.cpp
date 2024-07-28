@@ -74,5 +74,22 @@ namespace Wool {
 
     }
         
-        
+    void Voice::connectVoiceWS() {
+        voiceWS.init_asio();
+        voiceWS.set_tls_init_handler([](websocketpp::connection_hdl) {
+            return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
+        });
+        voiceWS.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
+            //
+        });
+        websocketpp::lib::error_code ec;
+        ws_client::connection_ptr con = voiceWS.get_connection("wss://" + endpoint, ec);
+        if (ec) {
+            SPDLOG_ERROR("Could not create connection: {}", ec.message());
+            return;
+        }
+        voiceWS.connect(con);
+        voiceWS.run();
+    }
+    
 }// namespace Wool

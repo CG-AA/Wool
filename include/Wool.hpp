@@ -4,7 +4,6 @@
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 #include <websocketpp/client.hpp>
-#include <websocketpp/server.hpp>
 #include <websocketpp/config/asio_client.hpp>
 #include <mutex>
 
@@ -31,7 +30,7 @@ private:
     CURL *curl;//for HTTP requests
     std::string readBuffer;//for HTTP requests
 
-    ws_client WSppC;//websocketpp client
+    ws_client WS;//websocketpp client
     
     websocketpp::connection_hdl hdl;//websocketpp connection handle
 

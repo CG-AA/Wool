@@ -30,7 +30,7 @@ private:
     std::mutex mtx;
     std::condition_variable cv;
     std::unique_ptr<Wool> WoolINS;
-
+    ws_client voiceWS;
     bool deaf;
     bool mute;
 	std::string endpoint;
@@ -49,6 +49,8 @@ private:
     std::atomic<bool> VCSeUreceived{false};
     void parseVoiceStateUpdate(std::string& data);
     std::atomic<bool> VCStUreceived{false};
+
+    void connectVoiceWS();
 };
 
 } // namespace Wool
