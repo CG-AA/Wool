@@ -53,8 +53,10 @@ private:
 
     void connectVoiceWS();
 
-    
-    void initVoiceWSmsgHandler();
+    void initVoiceWSmsgHandler(std::string msg);
+    void generalVoiceWSmsgHandler(std::string msg);
+    std::function<void(std::string)> onVWSmsg = initVoiceWSmsgHandler;
+
 };
 
 } // namespace Wool

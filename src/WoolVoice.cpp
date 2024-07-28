@@ -95,5 +95,8 @@ namespace Wool {
             heartbeat_interval = j["d"]["heartbeat_interval"];
         }
     }
+
+    void Voice::generalVoiceWSmsgHandler(std::string msg) {
+    }
     
 }// namespace Wool
