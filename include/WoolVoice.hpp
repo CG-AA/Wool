@@ -42,6 +42,7 @@ private:
     int ssrc;
     std::string ip;
     int port;
+    int heartbeat_interval;
 	std::function<void(const std::vector<uint8_t>&)> onVoiceInput;
 	std::function<std::vector<uint8_t>()> onVoiceOutput;
 
@@ -51,6 +52,9 @@ private:
     std::atomic<bool> VCStUreceived{false};
 
     void connectVoiceWS();
+
+    
+    void initVoiceWSmsgHandler();
 };
 
 } // namespace Wool

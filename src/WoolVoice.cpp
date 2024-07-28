@@ -54,22 +54,6 @@ namespace Wool {
         WoolINS->sendWss("{\"op\":4,\"d\":{\"guild_id\":\"" + guild_id + "\",\"channel_id\":\"" + channel_id + "\",\"self_mute\":false,\"self_deaf\":false}}");
         std::unique_lock<std::mutex> lock(mtx);
         cv.wait(lock, [this] { return VCSeUreceived && VCStUreceived; });
-        // onVoiceUpdate = [this](std::string data) {
-        //     nlohmann::json j = nlohmann::json::parse(data);
-        //     if (j["op"] == 2){
-        //         ssrc = j["d"]["ssrc"];
-        //         ip = j["d"]["ip"];
-        //         port = j["d"]["port"];
-        //         if(j["d"]["mode"].contains("xsalsa20_poly1305")){
-        //             SPDLOG_INFO("Encryption mode: xsalsa20_poly1305");
-        //         }else{
-        //             SPDLOG_ERROR("Unsupported encryption mode");
-        //             return;
-        //         }
-        //     }
-        // };
-        // //Voice Identify Payload
-        // WoolINS->sendWss("{\"op\":0,\"d\":{\"server_id\":\"" + guild_id + "\",\"user_id\":\"" + user_id + "\",\"session_id\":\"" + session_id + "\",\"token\":\"" + token + "\"}}");
 
 
     }
@@ -79,8 +63,11 @@ namespace Wool {
         voiceWS.set_tls_init_handler([](websocketpp::connection_hdl) {
             return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
         });
+        voiceWS.set_open_handler([this](websocketpp::connection_hdl hdl) {
+            voiceWS.send(hdl, "{\"op\":0,\"d\":{\"server_id\":\"" + guild_id + "\",\"user_id\":\"" + user_id + "\",\"session_id\":\"" + session_id + "\",\"token\":\"" + token + "\"}}" );
+        });
         voiceWS.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
-            //
+            
         });
         websocketpp::lib::error_code ec;
         ws_client::connection_ptr con = voiceWS.get_connection("wss://" + endpoint, ec);
@@ -90,6 +77,23 @@ namespace Wool {
         }
         voiceWS.connect(con);
         voiceWS.run();
+    }
+
+    void Voice::initVoiceWSmsgHandler(std::string msg) {
+        nlohmann::json j = nlohmann::json::parse(msg);
+        if (j["op"] == 2){
+            ssrc = j["d"]["ssrc"];
+            ip = j["d"]["ip"];
+            port = j["d"]["port"];
+            if(j["d"]["mode"].contains("xsalsa20_poly1305")){
+                SPDLOG_INFO("Encryption mode: xsalsa20_poly1305");
+            }else{
+                SPDLOG_ERROR("Unsupported encryption mode");
+                return;
+            }
+        }else if (j["op"] == 8){
+            heartbeat_interval = j["d"]["heartbeat_interval"];
+        }
     }
     
 }// namespace Wool
