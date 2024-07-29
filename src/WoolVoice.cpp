@@ -45,8 +45,10 @@ namespace Wool {
             try {
                 if (tVal == "VOICE_SERVER_UPDATE" && !VCSeUreceived) {
                     parseVoiceServerUpdate(data);
+                    SPDLOG_INFO("Received voice server update");
                 } else if (tVal == "VOICE_STATE_UPDATE" && !VCStUreceived) {
                     parseVoiceStateUpdate(data);
+                    SPDLOG_INFO("Received voice state update");
                 }
                 return;
             } catch (const std::invalid_argument& e) {
@@ -58,6 +60,7 @@ namespace Wool {
         //Gateway Voice State Update
         WoolINS->sendWss("{\"op\":4,\"d\":{\"guild_id\":\"" + guild_id + "\",\"channel_id\":\"" + channel_id + "\",\"self_mute\":false,\"self_deaf\":false}}");
         cv.wait(lock, [this] { return VCSeUreceived && VCStUreceived; });
+        WoolINS->onVoiceUpdate = nullptr;
         connectVoiceWS();
     }
         
