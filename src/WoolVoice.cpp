@@ -105,6 +105,7 @@ namespace Wool {
                 ready = true;
             }else{
                 SPDLOG_ERROR("Unsupported encryption mode: {}", encryptionMode);
+                SPDLOG_ERROR("Supported encryption modes: {}", j["d"]["modes"].dump());
                 return;
             }
         }else if (j["op"] == 8){
