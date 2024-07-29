@@ -100,7 +100,7 @@ namespace Wool {
             ssrc = j["d"]["ssrc"];
             ip = j["d"]["ip"];
             port = j["d"]["port"];
-            if(j["d"]["mode"].contains(encryptionMode)){
+            if(j["d"]["modes"].contains(encryptionMode)){
                 SPDLOG_INFO("Encryption mode: {}", encryptionMode);
                 ready = true;
             }else{
