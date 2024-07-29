@@ -21,6 +21,7 @@ private:
     std::string token = "";// bot token(found in the Discord developer portal)
     std::string APPID = "";// auto filled by the library
     std::string WSS_URL;// gateway URL
+    int intents = 0;// gateway intents
     int heartbeat_interval;//heartbeat interval (ms)
     std::atomic<int> LS{0};//last sequence (s in message)
     std::atomic<bool> ACK{false};//heartbeat ACK
@@ -62,6 +63,8 @@ public:
     //set bot token(found in the Discord developer portal)
     void setToken(std::string token){
         this->token = token;}
+    void setIntents(int intents){
+        this->intents = intents;}
     /**
      * message handler for websocket messages
      * @param handler: the function that will be called when a message is received

@@ -26,6 +26,7 @@ int main() {
         wool.setWssMessageHandler([](std::string message){
             SPDLOG_INFO("Received message: {}", message);
         });
+        wool.setIntents(1 << 9 | 1 << 7);
         SPDLOG_INFO("Connecting to the gateway...");
         wool.connect_ws();
         Wool::Voice voice(&wool, "745136869154750473", "1128985878467989574", false, false);

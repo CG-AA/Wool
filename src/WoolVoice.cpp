@@ -3,9 +3,10 @@
 
 namespace {
     std::string getComponentString(std::string& data, const std::string& key) {
-        size_t startPos = data.find(key+"\":\"");
+        std::string searchKey = "\"" + key + "\":\"";
+        size_t startPos = data.find(searchKey);
         if (startPos != std::string::npos) {
-            startPos += 4; // Move past the key and the colon
+            startPos += searchKey.length(); // Move past the key and the colon
             size_t endPos = data.find_first_of('\"', startPos);
             if (endPos != std::string::npos) {
                 return data.substr(startPos, endPos - startPos);
@@ -57,10 +58,12 @@ namespace Wool {
                 SPDLOG_ERROR("Out of range: {}", e.what());
             }
         };
+        SPDLOG_INFO("Sending voice state update...");
         //Gateway Voice State Update
         WoolINS->sendWss("{\"op\":4,\"d\":{\"guild_id\":\"" + guild_id + "\",\"channel_id\":\"" + channel_id + "\",\"self_mute\":false,\"self_deaf\":false}}");
         cv.wait(lock, [this] { return VCSeUreceived && VCStUreceived; });
         WoolINS->onVoiceUpdate = nullptr;
+        SPDLOG_INFO("Connecting to voice WS...");
         connectVoiceWS();
     }
         
@@ -70,13 +73,16 @@ namespace Wool {
             return websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv12);
         });
         voiceWS.set_open_handler([this](websocketpp::connection_hdl hdl) {
+            SPDLOG_INFO("Sending voice identify...");
             voiceWS.send(hdl, "{\"op\":0,\"d\":{\"server_id\":\"" + guild_id + "\",\"user_id\":\"" + user_id + "\",\"session_id\":\"" + session_id + "\",\"token\":\"" + token + "\"}}", websocketpp::frame::opcode::text);
         });
         voiceWS.set_message_handler([this](websocketpp::connection_hdl hdl, ws_client::message_ptr msg) {
             onVWSmsg(hdl, msg->get_payload());
         });
         websocketpp::lib::error_code ec;
-        ws_client::connection_ptr con = voiceWS.get_connection("wss://" + endpoint + "?v=4", ec);
+        std::string VCurl = "wss://" + endpoint + "?v=4";
+        SPDLOG_INFO("Connecting to: {}", VCurl);
+        ws_client::connection_ptr con = voiceWS.get_connection(VCurl, ec);
         if (ec) {
             SPDLOG_ERROR("Could not create connection: {}", ec.message());
             return;
@@ -137,6 +143,7 @@ namespace Wool {
             SPDLOG_DEBUG("Heartbeat ACK received");
             return;
         }
+        SPDLOG_INFO("Received message: {}", message);
     }
     
 }// namespace Wool

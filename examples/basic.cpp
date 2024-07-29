@@ -25,6 +25,7 @@ int main() {
         wool.setWssMessageHandler([](std::string message){
             SPDLOG_INFO("Received message: {}", message);
         });
+        wool.setIntents(1 << 9);
         wool.connect_ws();
         nlohmann::json eg_components = nlohmann::json::parse(R"(
             {

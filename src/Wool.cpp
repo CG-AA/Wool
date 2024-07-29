@@ -112,7 +112,11 @@ void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::mes
 }
 
 void Wool::sendIdentify(websocketpp::connection_hdl hdl) {
-    int intents = (1 << 9);
+    if(!intents){
+        SPDLOG_ERROR("Intents is not set");
+        throw std::runtime_error("Intents is not set");
+        return;
+    }
     nlohmann::json identify = {
         {"op", 2},
         {"d", {
