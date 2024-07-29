@@ -100,23 +100,32 @@ namespace Wool {
             ssrc = j["d"]["ssrc"];
             ip = j["d"]["ip"];
             port = j["d"]["port"];
-            try {
-                j["d"]["modes"][encryptionMode];
-            } catch (const nlohmann::json::out_of_range& e) {
-                SPDLOG_ERROR("Encryption mode not found: {}", e.what());
+            std::vector <std::string> modes = j["d"]["modes"];
+            if(std::find(modes.begin(), modes.end(), encryptionMode) != modes.end()){
+                SPDLOG_INFO("Encryption mode: {}", encryptionMode);
+                ready = true;
+            }else{
+                SPDLOG_ERROR("Unsupported encryption mode: {}", encryptionMode);
                 SPDLOG_ERROR("Supported encryption modes: {}", j["d"]["modes"].dump());
                 return;
             }
-            SPDLOG_INFO("Encryption mode: {}", encryptionMode);
-            ready = true;
         }else if (j["op"] == 8){
             heartbeat_interval = j["d"]["heartbeat_interval"];
             hello = true;
+        }else if (j["op"] == 4){
+            secretKey = j["d"]["secret_key"];
+            secretKeyReceived = true;
         }
-        if (ready && hello){
+        if (ready && hello && secretKeyReceived) {
+            SPDLOG_INFO("Voice connection established");
             onVWSmsg = [this](websocketpp::connection_hdl hdl, std::string msg) {
                 generalVoiceWSmsgHandler(hdl, msg);
             };
+            return;
+        }
+        if (ready && hello && !secretKeyReceived) {
+            voiceWS.send(hdl, R"({"op":1,"d":{"protocol":"udp","data":{"address":")" + ip + R"(","port":)" + std::to_string(port) + R"(,"mode":")" + encryptionMode + R"("}}})", websocketpp::frame::opcode::text);
+
             ACK = true;
             nonce = std::chrono::system_clock::now();
             std::thread heartbeatThread([this, hdl](){
@@ -131,6 +140,7 @@ namespace Wool {
                 this->reconnectVoiceWS();
             });
             heartbeatThread.detach();
+            return;
         }
     }
 

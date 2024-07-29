@@ -49,6 +49,8 @@ private:
     std::atomic<bool> ACK{false};
     std::atomic<bool> hello{false};
     std::atomic<bool> ready{false};
+    std::atomic<bool> secretKeyReceived{false};
+    std::vector<uint32_t> secretKey;
     std::chrono::_V2::system_clock::time_point nonce;
 
     void parseVoiceServerUpdate(std::string& data);
