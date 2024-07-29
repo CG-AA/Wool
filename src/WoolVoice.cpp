@@ -100,14 +100,15 @@ namespace Wool {
             ssrc = j["d"]["ssrc"];
             ip = j["d"]["ip"];
             port = j["d"]["port"];
-            if(j["d"]["modes"].contains(encryptionMode)){
-                SPDLOG_INFO("Encryption mode: {}", encryptionMode);
-                ready = true;
-            }else{
-                SPDLOG_ERROR("Unsupported encryption mode: {}", encryptionMode);
+            try {
+                j["d"]["modes"][encryptionMode];
+            } catch (const nlohmann::json::out_of_range& e) {
+                SPDLOG_ERROR("Encryption mode not found: {}", e.what());
                 SPDLOG_ERROR("Supported encryption modes: {}", j["d"]["modes"].dump());
                 return;
             }
+            SPDLOG_INFO("Encryption mode: {}", encryptionMode);
+            ready = true;
         }else if (j["op"] == 8){
             heartbeat_interval = j["d"]["heartbeat_interval"];
             hello = true;
