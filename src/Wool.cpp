@@ -87,10 +87,9 @@ void Wool::generalMessageHandler(websocketpp::connection_hdl hdl, ws_client::mes
             size_t endPos = payload.find_first_of(',', startPos);
             if (endPos != std::string::npos) {
                 std::string sValueStr = payload.substr(startPos, endPos - startPos);
-                // Convert to int or leave as string depending on your needs
                 try {
                     int sValue = std::stoi(sValueStr);
-                    this->LS = sValue; // Assuming LS is an int member variable for last sequence
+                    this->LS = sValue;
                     SPDLOG_DEBUG("Updated LS to {}", sValue);
                 } catch (const std::invalid_argument& e) {
                     SPDLOG_ERROR("Invalid argument: {}", e.what());
