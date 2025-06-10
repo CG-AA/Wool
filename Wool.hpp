@@ -11,8 +11,6 @@
 
 namespace Wool {
 // Snowflake is Discord's unsigned 64-bit identifier
-
-
 using Snowflake = unsigned long long;
 
 struct User { Snowflake id; };
@@ -98,9 +96,8 @@ enum class MessageType {
     PURCHASE_NOTIFICATION = 44,
     POLL_RESULT = 46
 };
+
 // Bit flags controlling message display and behavior
-
-
 enum MessageFlags {
     CROSSPOSTED = 1 << 0,
     IS_CROSSPOST = 1 << 1,
