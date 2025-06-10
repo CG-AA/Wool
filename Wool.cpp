@@ -62,16 +62,20 @@ std::string http_request(const std::string& method, const std::string& url, cons
 
 Message from_json(const nlohmann::json& j) {
     Message m;
-    m.id = j.at("id").get<Snowflake>();
-    m.channel_id = j.at("channel_id").get<Snowflake>();
-    if (j.contains("author")) m.author.id = j["author"].at("id").get<Snowflake>();
-    if (j.contains("content")) m.content = j["content"].get<std::string>();
-    if (j.contains("timestamp")) m.timestamp = j["timestamp"].get<std::string>();
-    if (j.contains("edited_timestamp") && !j["edited_timestamp"].is_null())
-        m.edited_timestamp = j["edited_timestamp"].get<std::string>();
-    if (j.contains("tts")) m.tts = j["tts"].get<bool>();
-    if (j.contains("mention_everyone")) m.mention_everyone = j["mention_everyone"].get<bool>();
-    if (j.contains("flags")) m.flags = j["flags"].get<int>();
+    try {
+        m.id = j.at("id").get<Snowflake>();
+        m.channel_id = j.at("channel_id").get<Snowflake>();
+        if (j.contains("author")) m.author.id = j["author"].at("id").get<Snowflake>();
+        if (j.contains("content")) m.content = j["content"].get<std::string>();
+        if (j.contains("timestamp")) m.timestamp = j["timestamp"].get<std::string>();
+        if (j.contains("edited_timestamp") && !j["edited_timestamp"].is_null())
+            m.edited_timestamp = j["edited_timestamp"].get<std::string>();
+        if (j.contains("tts")) m.tts = j["tts"].get<bool>();
+        if (j.contains("mention_everyone")) m.mention_everyone = j["mention_everyone"].get<bool>();
+        if (j.contains("flags")) m.flags = j["flags"].get<int>();
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("Invalid message JSON: ") + e.what());
+    }
 
     return m;
 }
@@ -91,10 +95,15 @@ std::vector<Message> Message::GetChannelMessages(Snowflake channel_id) {
     logger.log(Logger::Level::Info, "GetChannelMessages channel_id=" + std::to_string(channel_id));
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages";
     auto resp = http_request("GET", url);
-    auto arr = nlohmann::json::parse(resp);
-    std::vector<Message> msgs;
-    for (auto& itm : arr) msgs.push_back(from_json(itm));
-    return msgs;
+    try {
+        auto arr = nlohmann::json::parse(resp);
+        std::vector<Message> msgs;
+        for (auto& itm : arr) msgs.push_back(from_json(itm));
+        return msgs;
+    } catch (const std::exception& e) {
+        logger.log(Logger::Level::Error, std::string("GetChannelMessages parse error: ") + e.what());
+        throw;
+    }
 }
 
 // Fetch a single message by ID
@@ -103,7 +112,12 @@ Message Message::GetChannelMessage(Snowflake channel_id, Snowflake message_id) {
     logger.log(Logger::Level::Info, "GetChannelMessage channel_id=" + std::to_string(channel_id) + " message_id=" + std::to_string(message_id));
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(message_id);
     auto resp = http_request("GET", url);
-    return from_json(nlohmann::json::parse(resp));
+    try {
+        return from_json(nlohmann::json::parse(resp));
+    } catch (const std::exception& e) {
+        logger.log(Logger::Level::Error, std::string("GetChannelMessage parse error: ") + e.what());
+        throw;
+    }
 }
 
 // Send a new message to a channel
@@ -112,7 +126,12 @@ Message Message::CreateMessage(Snowflake channel_id, const Message& msg) {
     logger.log(Logger::Level::Info, "CreateMessage channel_id=" + std::to_string(channel_id));
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages";
     auto resp = http_request("POST", url, to_json(msg));
-    return from_json(nlohmann::json::parse(resp));
+    try {
+        return from_json(nlohmann::json::parse(resp));
+    } catch (const std::exception& e) {
+        logger.log(Logger::Level::Error, std::string("CreateMessage parse error: ") + e.what());
+        throw;
+    }
 }
 
 // Crosspost a message to followers
@@ -121,7 +140,12 @@ Message Message::CrosspostMessage(Snowflake channel_id, Snowflake message_id) {
     logger.log(Logger::Level::Info, "CrosspostMessage channel_id=" + std::to_string(channel_id) + " message_id=" + std::to_string(message_id));
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(message_id) + "/crosspost";
     auto resp = http_request("POST", url);
-    return from_json(nlohmann::json::parse(resp));
+    try {
+        return from_json(nlohmann::json::parse(resp));
+    } catch (const std::exception& e) {
+        logger.log(Logger::Level::Error, std::string("CrosspostMessage parse error: ") + e.what());
+        throw;
+    }
 }
 
 // Add a reaction using the current user
@@ -154,13 +178,18 @@ std::vector<User> Message::GetReactions(const std::string& emoji) {
     logger.log(Logger::Level::Debug, "GetReactions message_id=" + std::to_string(id) + " emoji=" + emoji);
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + curl_easy_escape(nullptr, emoji.c_str(), 0);
     auto resp = http_request("GET", url);
-    auto arr = nlohmann::json::parse(resp);
-    std::vector<User> users;
-    for (auto& itm : arr) {
-        User u{itm.at("id").get<Snowflake>()};
-        users.push_back(u);
+    try {
+        auto arr = nlohmann::json::parse(resp);
+        std::vector<User> users;
+        for (auto& itm : arr) {
+            User u{itm.at("id").get<Snowflake>()};
+            users.push_back(u);
+        }
+        return users;
+    } catch (const std::exception& e) {
+        logger.log(Logger::Level::Error, std::string("GetReactions parse error: ") + e.what());
+        throw;
     }
-    return users;
 }
 
 // Remove all reactions from this message
