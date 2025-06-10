@@ -25,3 +25,9 @@ g++ -std=c++17 example.cpp Wool.cpp -o example -lcurl
 ```
 ./example <channel_id> "Hello world"
 ```
+
+## Logging
+
+`Logger.hpp` provides a simple logging utility. By default logs are printed to the
+terminal, but you can also log to a file or both. Messages include a timestamp
+and severity level (`DEBUG`, `INFO`, `WARN`, `ERROR`).

@@ -3,6 +3,7 @@
 // Only a small subset of fields is currently supported
 
 #include "Wool.hpp"
+#include "Logger.hpp"
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
 #include <stdexcept>
@@ -10,6 +11,9 @@
 
 namespace Wool {
 namespace {
+
+// Global logger instance used for all library logging
+static Logger logger;
 
 constexpr const char* API_BASE = "https://discord.com/api/v10";
 
@@ -31,6 +35,7 @@ std::string auth_header() {
 // TODO: expose status codes and error handling
 
 std::string http_request(const std::string& method, const std::string& url, const std::string& body = "") {
+    logger.log(Logger::Level::Info, "HTTP " + method + " " + url);
     CURL* curl = curl_easy_init();
     if (!curl) throw std::runtime_error("curl_easy_init failed");
     std::string response;
@@ -46,6 +51,7 @@ std::string http_request(const std::string& method, const std::string& url, cons
     headers = curl_slist_append(headers, auth_header().c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     CURLcode res = curl_easy_perform(curl);
+    logger.log(Logger::Level::Debug, "HTTP response received: " + std::to_string(res));
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     if (res != CURLE_OK) throw std::runtime_error("curl_easy_perform failed");
@@ -82,6 +88,7 @@ std::string to_json(const Message& m) {
 // Retrieve recent messages from a channel
 
 std::vector<Message> Message::GetChannelMessages(Snowflake channel_id) {
+    logger.log(Logger::Level::Info, "GetChannelMessages channel_id=" + std::to_string(channel_id));
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages";
     auto resp = http_request("GET", url);
     auto arr = nlohmann::json::parse(resp);
@@ -93,6 +100,7 @@ std::vector<Message> Message::GetChannelMessages(Snowflake channel_id) {
 // Fetch a single message by ID
 
 Message Message::GetChannelMessage(Snowflake channel_id, Snowflake message_id) {
+    logger.log(Logger::Level::Info, "GetChannelMessage channel_id=" + std::to_string(channel_id) + " message_id=" + std::to_string(message_id));
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(message_id);
     auto resp = http_request("GET", url);
     return from_json(nlohmann::json::parse(resp));
@@ -101,6 +109,7 @@ Message Message::GetChannelMessage(Snowflake channel_id, Snowflake message_id) {
 // Send a new message to a channel
 
 Message Message::CreateMessage(Snowflake channel_id, const Message& msg) {
+    logger.log(Logger::Level::Info, "CreateMessage channel_id=" + std::to_string(channel_id));
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages";
     auto resp = http_request("POST", url, to_json(msg));
     return from_json(nlohmann::json::parse(resp));
@@ -109,6 +118,7 @@ Message Message::CreateMessage(Snowflake channel_id, const Message& msg) {
 // Crosspost a message to followers
 
 Message Message::CrosspostMessage(Snowflake channel_id, Snowflake message_id) {
+    logger.log(Logger::Level::Info, "CrosspostMessage channel_id=" + std::to_string(channel_id) + " message_id=" + std::to_string(message_id));
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(message_id) + "/crosspost";
     auto resp = http_request("POST", url);
     return from_json(nlohmann::json::parse(resp));
@@ -117,6 +127,7 @@ Message Message::CrosspostMessage(Snowflake channel_id, Snowflake message_id) {
 // Add a reaction using the current user
 
 void Message::CreateReaction(const std::string& emoji) {
+    logger.log(Logger::Level::Debug, "CreateReaction message_id=" + std::to_string(id) + " emoji=" + emoji);
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + curl_easy_escape(nullptr, emoji.c_str(), 0) + "/@me";
     http_request("PUT", url);
 }
@@ -124,6 +135,7 @@ void Message::CreateReaction(const std::string& emoji) {
 // Remove our own reaction
 
 void Message::DeleteOwnReaction(const std::string& emoji) {
+    logger.log(Logger::Level::Debug, "DeleteOwnReaction message_id=" + std::to_string(id) + " emoji=" + emoji);
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + curl_easy_escape(nullptr, emoji.c_str(), 0) + "/@me";
     http_request("DELETE", url);
 }
@@ -131,6 +143,7 @@ void Message::DeleteOwnReaction(const std::string& emoji) {
 // Remove another user's reaction
 
 void Message::DeleteUserReaction(const std::string& emoji, Snowflake user_id) {
+    logger.log(Logger::Level::Debug, "DeleteUserReaction message_id=" + std::to_string(id) + " user_id=" + std::to_string(user_id) + " emoji=" + emoji);
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + curl_easy_escape(nullptr, emoji.c_str(), 0) + "/" + std::to_string(user_id);
     http_request("DELETE", url);
 }
@@ -138,6 +151,7 @@ void Message::DeleteUserReaction(const std::string& emoji, Snowflake user_id) {
 // List users that reacted with a specific emoji
 
 std::vector<User> Message::GetReactions(const std::string& emoji) {
+    logger.log(Logger::Level::Debug, "GetReactions message_id=" + std::to_string(id) + " emoji=" + emoji);
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + curl_easy_escape(nullptr, emoji.c_str(), 0);
     auto resp = http_request("GET", url);
     auto arr = nlohmann::json::parse(resp);
@@ -152,6 +166,7 @@ std::vector<User> Message::GetReactions(const std::string& emoji) {
 // Remove all reactions from this message
 
 void Message::DeleteAllReactions() {
+    logger.log(Logger::Level::Info, "DeleteAllReactions message_id=" + std::to_string(id));
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions";
     http_request("DELETE", url);
 }
@@ -159,6 +174,7 @@ void Message::DeleteAllReactions() {
 // Remove all reactions for a single emoji
 
 void Message::DeleteAllReactionsForEmoji(const std::string& emoji) {
+    logger.log(Logger::Level::Info, "DeleteAllReactionsForEmoji message_id=" + std::to_string(id) + " emoji=" + emoji);
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + curl_easy_escape(nullptr, emoji.c_str(), 0);
     http_request("DELETE", url);
 }
@@ -166,6 +182,7 @@ void Message::DeleteAllReactionsForEmoji(const std::string& emoji) {
 // Update this message
 
 void Message::EditMessage(const Message& msg) {
+    logger.log(Logger::Level::Info, "EditMessage message_id=" + std::to_string(id));
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id);
     http_request("PATCH", url, to_json(msg));
 }
@@ -173,6 +190,7 @@ void Message::EditMessage(const Message& msg) {
 // Delete this message
 
 void Message::DeleteMessage() {
+    logger.log(Logger::Level::Warn, "DeleteMessage message_id=" + std::to_string(id));
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id);
     http_request("DELETE", url);
 }
@@ -180,6 +198,7 @@ void Message::DeleteMessage() {
 // Delete multiple messages at once
 
 void Message::BulkDeleteMessages(Snowflake channel_id, const std::vector<Snowflake>& ids) {
+    logger.log(Logger::Level::Warn, "BulkDeleteMessages channel_id=" + std::to_string(channel_id));
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/bulk-delete";
     nlohmann::json j;
     j["messages"] = ids;
