@@ -10,6 +10,15 @@
 #include <cstdlib>
 
 namespace Wool {
+
+void to_json(nlohmann::json& j, const Snowflake& s) {
+    j = s.value;
+}
+
+void from_json(const nlohmann::json& j, Snowflake& s) {
+    s.value = j.get<unsigned long long>();
+}
+
 namespace {
 
 // Global logger instance used for all library logging
