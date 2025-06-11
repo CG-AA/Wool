@@ -127,6 +127,7 @@ Message Message::CreateMessage(Snowflake channel_id, const Message& msg) {
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages";
     auto resp = http_request("POST", url, to_json(msg));
     try {
+        logger.log(Logger::Level::Debug, "CreateMessage response: " + resp);
         return from_json(nlohmann::json::parse(resp));
     } catch (const std::exception& e) {
         logger.log(Logger::Level::Error, std::string("CreateMessage parse error: ") + e.what());

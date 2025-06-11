@@ -11,7 +11,14 @@
 
 namespace Wool {
 // Snowflake is Discord's unsigned 64-bit identifier
-using Snowflake = unsigned long long;
+struct Snowflake {
+    unsigned long long value{};
+    Snowflake() = default;
+    Snowflake(unsigned long long v) : value(v) {}
+    Snowflake(const std::string& s) : value(std::stoull(s)) {}
+    operator unsigned long long() const { return value; }
+};
+
 
 struct User { Snowflake id; };
 struct Channel { Snowflake id; };
