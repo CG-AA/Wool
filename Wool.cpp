@@ -40,10 +40,15 @@ std::string auth_header() {
     if (!token) throw std::runtime_error("DISCORD_BOT_TOKEN not set");
     return std::string("Authorization: Bot ") + token;
 }
-// Perform an HTTP request using libcurl and return the response body
-// TODO: expose status codes and error handling
+// Structure capturing an HTTP response body and status
+struct HttpResponse {
+    std::string body;
+    long status = 0;
+};
 
-std::string http_request(const std::string& method, const std::string& url, const std::string& body = "") {
+// Perform an HTTP request using libcurl and return the body and status code
+HttpResponse http_request(const std::string& method, const std::string& url,
+                          const std::string& body = "") {
     logger.log(Logger::Level::Info, "HTTP " + method + " " + url);
     CURL* curl = curl_easy_init();
     if (!curl) throw std::runtime_error("curl_easy_init failed");
@@ -60,11 +65,15 @@ std::string http_request(const std::string& method, const std::string& url, cons
     headers = curl_slist_append(headers, auth_header().c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     CURLcode res = curl_easy_perform(curl);
-    logger.log(Logger::Level::Debug, "HTTP response received: " + std::to_string(res));
+    long status = 0;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
+    logger.log(Logger::Level::Debug,
+               "HTTP response received: " + std::to_string(res) +
+                   " status=" + std::to_string(status));
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     if (res != CURLE_OK) throw std::runtime_error("curl_easy_perform failed");
-    return response;
+    return {response, status};
 }
 // Deserialize a subset of the Discord Message object from JSON
 
@@ -105,7 +114,7 @@ std::vector<Message> Message::GetChannelMessages(Snowflake channel_id) {
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages";
     auto resp = http_request("GET", url);
     try {
-        auto arr = nlohmann::json::parse(resp);
+        auto arr = nlohmann::json::parse(resp.body);
         std::vector<Message> msgs;
         for (auto& itm : arr) msgs.push_back(from_json(itm));
         return msgs;
@@ -122,7 +131,7 @@ Message Message::GetChannelMessage(Snowflake channel_id, Snowflake message_id) {
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(message_id);
     auto resp = http_request("GET", url);
     try {
-        return from_json(nlohmann::json::parse(resp));
+        return from_json(nlohmann::json::parse(resp.body));
     } catch (const std::exception& e) {
         logger.log(Logger::Level::Error, std::string("GetChannelMessage parse error: ") + e.what());
         throw;
@@ -136,8 +145,8 @@ Message Message::CreateMessage(Snowflake channel_id, const Message& msg) {
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages";
     auto resp = http_request("POST", url, to_json(msg));
     try {
-        logger.log(Logger::Level::Debug, "CreateMessage response: " + resp);
-        return from_json(nlohmann::json::parse(resp));
+        logger.log(Logger::Level::Debug, "CreateMessage response: " + resp.body);
+        return from_json(nlohmann::json::parse(resp.body));
     } catch (const std::exception& e) {
         logger.log(Logger::Level::Error, std::string("CreateMessage parse error: ") + e.what());
         throw;
@@ -151,7 +160,7 @@ Message Message::CrosspostMessage(Snowflake channel_id, Snowflake message_id) {
     std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(message_id) + "/crosspost";
     auto resp = http_request("POST", url);
     try {
-        return from_json(nlohmann::json::parse(resp));
+        return from_json(nlohmann::json::parse(resp.body));
     } catch (const std::exception& e) {
         logger.log(Logger::Level::Error, std::string("CrosspostMessage parse error: ") + e.what());
         throw;
@@ -197,7 +206,7 @@ std::vector<User> Message::GetReactions(const std::string& emoji) {
     curl_free(escaped);
     auto resp = http_request("GET", url);
     try {
-        auto arr = nlohmann::json::parse(resp);
+        auto arr = nlohmann::json::parse(resp.body);
         std::vector<User> users;
         for (auto& itm : arr) {
             User u{itm.at("id").get<std::string>()};
