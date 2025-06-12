@@ -72,9 +72,9 @@ std::string http_request(const std::string& method, const std::string& url, cons
 Message from_json(const nlohmann::json& j) {
     Message m;
     try {
-        m.id = j.at("id").get<Snowflake>();
-        m.channel_id = j.at("channel_id").get<Snowflake>();
-        if (j.contains("author")) m.author.id = j["author"].at("id").get<Snowflake>();
+        m.id = j.at("id").get<std::string>();
+        m.channel_id = j.at("channel_id").get<std::string>();
+        if (j.contains("author")) m.author.id = j["author"].at("id").get<std::string>();
         if (j.contains("content")) m.content = j["content"].get<std::string>();
         if (j.contains("timestamp")) m.timestamp = j["timestamp"].get<std::string>();
         if (j.contains("edited_timestamp") && !j["edited_timestamp"].is_null())
@@ -192,7 +192,7 @@ std::vector<User> Message::GetReactions(const std::string& emoji) {
         auto arr = nlohmann::json::parse(resp);
         std::vector<User> users;
         for (auto& itm : arr) {
-            User u{itm.at("id").get<Snowflake>()};
+            User u{itm.at("id").get<std::string>()};
             users.push_back(u);
         }
         return users;
