@@ -162,7 +162,9 @@ Message Message::CrosspostMessage(Snowflake channel_id, Snowflake message_id) {
 
 void Message::CreateReaction(const std::string& emoji) {
     logger.log(Logger::Level::Debug, "CreateReaction message_id=" + std::to_string(id) + " emoji=" + emoji);
-    std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + curl_easy_escape(nullptr, emoji.c_str(), 0) + "/@me";
+    char* escaped = curl_easy_escape(nullptr, emoji.c_str(), 0);
+    std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + escaped + "/@me";
+    curl_free(escaped);
     http_request("PUT", url);
 }
 
@@ -170,7 +172,9 @@ void Message::CreateReaction(const std::string& emoji) {
 
 void Message::DeleteOwnReaction(const std::string& emoji) {
     logger.log(Logger::Level::Debug, "DeleteOwnReaction message_id=" + std::to_string(id) + " emoji=" + emoji);
-    std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + curl_easy_escape(nullptr, emoji.c_str(), 0) + "/@me";
+    char* escaped = curl_easy_escape(nullptr, emoji.c_str(), 0);
+    std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + escaped + "/@me";
+    curl_free(escaped);
     http_request("DELETE", url);
 }
 
@@ -178,7 +182,9 @@ void Message::DeleteOwnReaction(const std::string& emoji) {
 
 void Message::DeleteUserReaction(const std::string& emoji, Snowflake user_id) {
     logger.log(Logger::Level::Debug, "DeleteUserReaction message_id=" + std::to_string(id) + " user_id=" + std::to_string(user_id) + " emoji=" + emoji);
-    std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + curl_easy_escape(nullptr, emoji.c_str(), 0) + "/" + std::to_string(user_id);
+    char* escaped = curl_easy_escape(nullptr, emoji.c_str(), 0);
+    std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + escaped + "/" + std::to_string(user_id);
+    curl_free(escaped);
     http_request("DELETE", url);
 }
 
@@ -186,7 +192,9 @@ void Message::DeleteUserReaction(const std::string& emoji, Snowflake user_id) {
 
 std::vector<User> Message::GetReactions(const std::string& emoji) {
     logger.log(Logger::Level::Debug, "GetReactions message_id=" + std::to_string(id) + " emoji=" + emoji);
-    std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + curl_easy_escape(nullptr, emoji.c_str(), 0);
+    char* escaped = curl_easy_escape(nullptr, emoji.c_str(), 0);
+    std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + escaped;
+    curl_free(escaped);
     auto resp = http_request("GET", url);
     try {
         auto arr = nlohmann::json::parse(resp);
@@ -214,7 +222,9 @@ void Message::DeleteAllReactions() {
 
 void Message::DeleteAllReactionsForEmoji(const std::string& emoji) {
     logger.log(Logger::Level::Info, "DeleteAllReactionsForEmoji message_id=" + std::to_string(id) + " emoji=" + emoji);
-    std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + curl_easy_escape(nullptr, emoji.c_str(), 0);
+    char* escaped = curl_easy_escape(nullptr, emoji.c_str(), 0);
+    std::string url = std::string(API_BASE) + "/channels/" + std::to_string(channel_id) + "/messages/" + std::to_string(id) + "/reactions/" + escaped;
+    curl_free(escaped);
     http_request("DELETE", url);
 }
 
